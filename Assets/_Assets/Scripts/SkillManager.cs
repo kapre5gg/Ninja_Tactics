@@ -1,137 +1,180 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.UI;
 
 [Serializable]
-public class Skill : MonoBehaviour
+public abstract class Skill
 {
     [Header("skill info")]
-    public float skillCool;
     public float skillRange;
     public float soundRange;
-    private float lastUsedTime = 0f;
-    //public Action ActionSkill;
-    public virtual void UseSKill() { }
+    public float skillCool;
+    protected float lastUsedTime;
+    protected Transform caster;
 
-    public virtual GameObject SkillEffect(Vector3 _pos) 
+    public Skill(float skillRange, float soundRange, float skillCool)
     {
-        GameObject sound = Instantiate(Resources.Load<GameObject>("SoundRange"), _pos, Quaternion.Euler(-90,0,0));
-        return sound;
+        this.skillRange = skillRange;
+        this.soundRange = soundRange;
+        this.skillCool = skillCool;
+        this.lastUsedTime = -skillCool; // 처음부터 스킬을 사용할 수 있도록 설정
+
+        this.caster = DBManager.instance.myCon.transform;
     }
 
+    public bool IsTargetInRange(Transform target)
+    {
+        return Vector3.Distance(caster.position, target.position) <= skillRange;
+    }
+    public bool IsTargetInRange(Vector3 nonTarget)
+    {
+        return Vector3.Distance(caster.position, nonTarget) <= skillRange;
+    }
+    public bool IsTargetSkill()
+    {
+        return DBManager.instance.myCon.target != null;
+    }
     public bool IsOffCooldown()
     {
         return Time.time >= lastUsedTime + skillCool;
     }
-    protected void UpdateCooldown()
-    {
-        lastUsedTime = Time.time;
-    }
 
-    public virtual void MakeSound(Vector3 _pos)
+    public abstract void UseSkill();
+    public abstract void ApproachUseSkill();
+
+
+    protected IEnumerator ApproachUseSkillCor()
     {
-        print("소리남");
-        Collider[] colls = Physics.OverlapSphere(_pos, soundRange);
-        foreach (Collider coll in colls)
+        yield return null;
+        NinjaController casterCon = DBManager.instance.myCon;
+        if (casterCon.isSitting)
+            casterCon.ChangeAnim("SitWalk");
+        else
+            casterCon.ChangeAnim("Walk");
+        if (IsTargetSkill())
         {
-            if (coll.GetComponent<EnemyAI>() == null)
-                continue;
-            coll.GetComponent<EnemyAI>().Alarm();
+            while (!IsTargetInRange(casterCon.target))
+            {
+                casterCon.agent.SetDestination(casterCon.target.position);
+                casterCon.soundIndicator.transform.position = casterCon.target.position;
+                yield return null;
+            }
+            DBManager.instance.myCon.MakeSound(casterCon.target.position, soundRange);
         }
-        Vector3 newPos = new Vector3(_pos.x, 0.01f, _pos.z);
-        GameObject sound = Instantiate(Resources.Load<GameObject>("Sound"), newPos, Quaternion.identity);
-        sound.transform.localScale = Vector3.one * soundRange;
-        Destroy(sound, 1f);
+        else
+        {
+            casterCon.agent.SetDestination(casterCon.nonTargetPos);
+            casterCon.soundIndicator.transform.position = casterCon.nonTargetPos;
+            while (!IsTargetInRange(casterCon.nonTargetPos))
+            {
+                yield return null;
+            }
+            DBManager.instance.myCon.MakeSound(casterCon.nonTargetPos, soundRange);
+        }
+        UseSkill();
+        
+        lastUsedTime = Time.time;
     }
 }
 
 public class MeleeAttack : Skill
 {
-    public MeleeAttack(float _skillRange, float _soundRange, float _Cool)
+    public MeleeAttack(float skillRange, float soundRange, float skillCool)
+        : base(skillRange, soundRange, skillCool) { }
+
+    public override void UseSkill()
     {
-        skillCool = _Cool;
-        skillRange = _skillRange;
-        soundRange = _soundRange;
-    }
-    public override void UseSKill()
-    {
-        if (!IsOffCooldown())
-            return;
-        print("근접스킬");
-        GameObject target = DBManager.instance.myCon.target;
-        DBManager.instance.myCon.Chaseto(target, skillRange);
-        DBManager.instance.myCon.WaitforChase(0, DBManager.instance.myCon.gameObject.transform.position);
-        //DBManager.instance.myCon.ChangeAnim("Attack");
-        if (target.GetComponent<EnemyAI>() != null)
-        {
-            target.GetComponent<EnemyAI>().Die();
-        }
+        DBManager.instance.myCon.agent.SetDestination(caster.position);
+        DBManager.instance.myCon.ChangeAnim("Attack");
+        DBManager.instance.myCon.target.GetComponent<EnemyAI>().Die();
+        DBManager.instance.myCon.skillIndicatorPrefab.SetActive(false);
     }
 
-
-    public override GameObject SkillEffect(Vector3 _pos)
+    public override void ApproachUseSkill()
     {
-        return base.SkillEffect(_pos);
-    }
-
-    public override void MakeSound(Vector3 _pos)
-    {
-        base.MakeSound(_pos);
-        //StartCoroutine(nameof(RTest));
+        if (IsOffCooldown() && IsTargetSkill())
+            caster.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
+        else
+            Debug.Log("스킬 쿨 안돌아옴");
     }
 }
 
 public class ThrowShurican : Skill
 {
-    public ThrowShurican(float _skillRange, float _soundRange, float _cool)
+    public ThrowShurican(float skillRange, float soundRange, float skillCool)
+        : base(skillRange, soundRange, skillCool) { }
+
+    public override void UseSkill()
     {
-        skillCool = _cool;
-        skillRange = _skillRange;
-        soundRange = _soundRange;
-    }
-    public override void UseSKill()
-    {
-        base.UseSKill();
-        print("수리검 던지기");
-        if (DBManager.instance.myCon.target.GetComponent<EnemyAI>() != null)
-        {
-            DBManager.instance.myCon.target.GetComponent<EnemyAI>().Die();
-        }
-    }
-    public override void MakeSound(Vector3 _origin)
-    {
-        base.MakeSound(_origin);
+        DBManager.instance.myCon.agent.SetDestination(caster.position);
+        DBManager.instance.myCon.ChangeAnim("Throw");
+        DBManager.instance.myCon.target.GetComponent<EnemyAI>().Die();
     }
 
+    public override void ApproachUseSkill()
+    {
+        if (IsOffCooldown() && IsTargetSkill())
+            caster.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
+        else
+            Debug.Log("스킬 쿨 안돌아옴");
+    }
+}
+
+public class ThrowStone : Skill
+{
+    public ThrowStone(float skillRange, float soundRange, float skillCool)
+        : base(skillRange, soundRange, skillCool) { }
+
+    public override void UseSkill()
+    {
+        DBManager.instance.myCon.agent.SetDestination(caster.position);
+        DBManager.instance.myCon.ChangeAnim("Throw");
+
+        //target.GetComponent <EnemyAI>().Alarm();
+    }
+    public override void ApproachUseSkill()
+    {
+        if (IsOffCooldown())
+            caster.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
+        else
+            Debug.Log("스킬 쿨 안돌아옴");
+    }
 }
 
 public class SkillManager : MonoBehaviour
 {
     public Image[] skillIcon;
     private NinjaController ninjaCon = null;
+    public Terrain terrain;
 
-    public Skill[] GetSkill(int _type)
+    public Skill[] GetSkill(int _type, NavMeshAgent _agent)
     {
         ninjaCon = DBManager.instance.myCon;
-        Skill[] awef = new Skill[3];
+        Skill[] skillSet = new Skill[3];
         switch (_type)
         {
             case 0:
-                awef[0] = new MeleeAttack(0.5f, 3, 5);
-                break; 
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[1] = new ThrowShurican(6f, 6f, 4f);
+                skillSet[2] = new ThrowStone(6f, 5f, 6f);
+                break;
             case 1:
-                awef[0] = new MeleeAttack(0.5f, 3, 5);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[1] = new ThrowShurican(6f, 6f, 4f);
+                skillSet[2] = new ThrowStone(6f, 5f, 6f);
                 break;
             case 2:
-                awef[0] = new MeleeAttack(0.5f, 3, 5);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[1] = new ThrowShurican(6f, 6f, 4f);
+                skillSet[2] = new ThrowStone(6f, 5f, 6f);
                 break;
             default:
                 print("잘못된 스킬 타입입니다.");
                 break;
 
         }
-        return awef;
+        return skillSet;
     }
 }

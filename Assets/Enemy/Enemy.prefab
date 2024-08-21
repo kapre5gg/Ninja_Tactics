@@ -1104,10 +1104,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 100150, guid: 8afe723514f619143a45ea089476b2cc,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3082336733685115586}
-    - targetCorrespondingSourceObject: {fileID: 100150, guid: 8afe723514f619143a45ea089476b2cc,
-        type: 3}
-      insertIndex: -1
       addedObject: {fileID: 2574877361387997861}
     - targetCorrespondingSourceObject: {fileID: 100150, guid: 8afe723514f619143a45ea089476b2cc,
         type: 3}
@@ -1213,22 +1209,6 @@ MonoBehaviour:
   enemyCanvas: {fileID: 5222352505438500254}
   enemyText: {fileID: 3906232849162617860}
   attackInterval: 1.5
---- !u!114 &3082336733685115586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3900235010063939121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5009cbb7e54994bb586cde7a70f34e6b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  triggerMode: 1
-  raycastCamera: {fileID: 0}
-  raycastSource: 0
-  maxDistance: 0
 --- !u!114 &2574877361387997861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1254,7 +1234,7 @@ MonoBehaviour:
   reflectionProbes: 0
   depthClip: 0
   ignore: 0
-  _highlighted: 0
+  _highlighted: 1
   fadeInDuration: 0
   fadeOutDuration: 0
   flipY: 0

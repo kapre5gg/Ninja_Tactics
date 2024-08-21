@@ -20,7 +20,7 @@ public class NinjaController : NetworkBehaviour
     public bool isDie = false;
     private Coroutine moveCor;
     private NinjaTacticsManager tacticsManager;
-    [SerializeField] private int ninjaSpeed = 0;
+    private int ninjaSpeed = 0;
     private int ninjaRunSpeed = 8;
     private int ninjaStandSpeed = 6;
     private int ninjaSitSpeed = 3;
@@ -28,14 +28,15 @@ public class NinjaController : NetworkBehaviour
     public Image multiHpImg = null;
 
     [Header("skill")]
+    public GameObject skillIndicatorPrefab;
+    [HideInInspector] public GameObject soundIndicator;
+    public Vector3 nonTargetPos;
+    public Transform target;
     private SkillManager skillManager;
+    public bool veiwSoundIndicator;
     private Skill[] skillSet = new Skill[3];
-    [SerializeField] private bool isAattack;
-    [SerializeField] private bool isSattack;
-    [SerializeField] private bool isDattack;
-    public GameObject target;
-    public Vector3 targetPos;
-    public bool isClose = false; //스킬을 쓰고 스킬 범위만큼 충분히 다가갔을때 true를 보냄
+    private Skill selectedSkill;
+    //public Vector3 targetPos;
     //마우스 클릭
     private float doubleClickTimeLimit = 0.3f;
     private float lastClickTime = 0f;
@@ -46,6 +47,7 @@ public class NinjaController : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
+        skillIndicatorPrefab.SetActive(false);
         DBManager.instance.myCon = this;
         isDie = false;
         ninjaType = -1;
@@ -69,17 +71,10 @@ public class NinjaController : NetworkBehaviour
     {
         if (isDie)
             return;
-        //AlawysHighlight();
         GetMousePos();
         SwitchNinjaSit();
-        Isattack();
+        KeyDownASD();
         UseSkillSet();
-    }
-
-    private void AlawysHighlight()
-    {
-        if (highlightEffect != null)
-            highlightEffect.highlighted = true;
     }
 
     public void StartNinja()
@@ -90,41 +85,20 @@ public class NinjaController : NetworkBehaviour
         GetComponent<PlayerInput>().enabled = false;
         ninjaType = DBManager.instance.PlayerNinjaType;
         SetNinjaInfo(ninjaType);
-        skillSet = skillManager.GetSkill(ninjaType);
-        //NinjaTacticsManager ninjaManager = FindObjectOfType<NinjaTacticsManager>();
-        //ninjaManager.multiPlayers.SetActive(true);
-        //ninjaManager.map.SetActive(true);
-        //ninjaManager.skillInfo.SetActive(true);
-        //if (ninjaType == 2) //사무라이만 체력이 5칸
-        //{
-        //    ninjaManager.profill[1].SetActive(true);
-        //    hpImage = ninjaManager.profill[1].GetComponent<Image>();
-        //    //Instantiate(Resources.Load<GameObject>("MultiProfill5"), multiPlayers.transform); //멀티작업해야됨
-        //    //Instantiate(Resources.Load<GameObject>("MultiProfill" + 5.ToString()), multiPlayers.transform);
-        //    ninjaManager.CmdMakeProfill(5);
-        //}
-        //else
-        //{
-        //    ninjaManager.profill[0].SetActive(true);
-        //    hpImage = ninjaManager.profill[0].GetComponent<Image>();
-        //    //Instantiate(Resources.Load<GameObject>("MultiProfill3"), multiPlayers.transform);
-        //    ninjaManager.CmdMakeProfill(3);
-        //}
+        skillSet = skillManager.GetSkill(ninjaType, agent);
     }
 
     private void GetMousePos() //이동시 먼저 발동
     {
         if (Input.GetMouseButtonDown(1))
         {
-            isAattack = false; //이동하면 진행중인 스킬 다 무시
-            isSattack = false;
-            isDattack = false;
+            NotUseSkill();
             StopAllCoroutines();
             if (isSitting)
                 anim.SetTrigger("SitWalk");
             else
                 anim.SetTrigger("Walk");
-            if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지
+            if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지 (뛰기)
             {
                 isSitting = false;
                 ninjaSpeed = ninjaRunSpeed;
@@ -134,6 +108,7 @@ public class NinjaController : NetworkBehaviour
                 ninjaSpeed = ninjaStandSpeed;
             else if (isSitting)
                 ninjaSpeed = ninjaSitSpeed;
+
             lastClickTime = Time.time;
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -151,6 +126,7 @@ public class NinjaController : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //StopCoroutine(moveCor);
+            NotUseSkill();
             StopAllCoroutines();
             agent.SetDestination(transform.position);
             isSitting = !isSitting;
@@ -191,36 +167,9 @@ public class NinjaController : NetworkBehaviour
     public void Moveto(Vector3 _targetPos, int _speed)
     {
         //StopCoroutine(moveCor);
+        NotUseSkill();
         StopAllCoroutines();
         moveCor = StartCoroutine(MouseMove(_targetPos, _speed));
-    }
-
-    public void Chaseto(GameObject _target, float _range)
-    {
-        //StopCoroutine(moveCor);
-        StopAllCoroutines();
-        moveCor = StartCoroutine(ChaseMove(_target, _range));
-    }
-    private IEnumerator ChaseMove(GameObject _target, float _range)
-    {
-        isClose = false;
-        if (isSitting)
-            anim.SetTrigger("SitWalk");
-        else
-            anim.SetTrigger("Run");
-        agent.stoppingDistance = _range;
-        while (Vector3.Distance(transform.position, _target.transform.position) > skillSet[0].skillRange)
-        {
-            agent.speed = ninjaSpeed;
-            agent.SetDestination(_target.transform.position);
-            yield return null;
-        }
-        print("공격체크");
-        isClose = true;
-        anim.SetTrigger("Idle");
-        //skillset[0].UseSKill(_target);
-        //skillset[0].MakeSound(transform.position);
-        //skillset[0].MakeSoundEffect(transform.position);
     }
 
     private IEnumerator MouseMove(Vector3 _targetPos, int _speed)
@@ -241,91 +190,111 @@ public class NinjaController : NetworkBehaviour
     #endregion
 
     #region 스킬ASD
-    private void Isattack()
+    private void KeyDownASD()
     {
         if (Input.GetKeyDown(KeyCode.A))
         {
-            isAattack = true;
-            isSattack = false;
-            isDattack = false;
+            selectedSkill = skillSet[0];
+            skillIndicatorPrefab.transform.localScale = Vector3.one * skillSet[0].skillRange;
+            skillIndicatorPrefab.SetActive(true);
+            ViewSoundRange(true, skillSet[0].soundRange);
+            print("a선택");
         }
+
         else if (Input.GetKeyDown(KeyCode.S))
         {
-            isAattack = false;
-            isSattack = true;
-            isDattack = false;
+            selectedSkill = skillSet[1];
+            skillIndicatorPrefab.transform.localScale = Vector3.one * skillSet[1].skillRange;
+            skillIndicatorPrefab.SetActive(true);
+            ViewSoundRange(true, skillSet[1].soundRange);
+            print("s선택");
         }
         else if (Input.GetKeyDown(KeyCode.D))
         {
-            isAattack = false;
-            isSattack = false;
-            isDattack = true;
+            selectedSkill = skillSet[2];
+            skillIndicatorPrefab.transform.localScale = Vector3.one * skillSet[2].skillRange;
+            skillIndicatorPrefab.SetActive(true);
+            ViewSoundRange(true, skillSet[2].soundRange);
+            print("d선택");
         }
-    }
-
-    public void WaitforChase(int _skillset, Vector3 _pos)
-    {
-        WaitforChaseCor(_skillset, _pos);
-    }
-    public IEnumerator WaitforChaseCor(int _skillset, Vector3 _pos)
-    {
-        while (!isClose)
-        {
-            yield return null;
-        }
-        DBManager.instance.myCon.ChangeAnim("Attack");
-        skillSet[_skillset].SkillEffect(_pos);
-        skillSet[_skillset].MakeSound(_pos);
     }
 
     private void UseSkillSet()
     {
-        if (isAattack)
+        if (Input.GetMouseButtonDown(0) && selectedSkill != null)
         {
-            if (Input.GetMouseButtonDown(0))
+            
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                GetMouseTarget();
-                skillSet[0].UseSKill();
-            }
-        }
-        else if (isSattack)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                GetMouseTarget();
-                skillSet[1].UseSKill();
-            }
-        }
-        else if (isDattack)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                GetMouseTarget();
-                skillSet[2].UseSKill();
+                if (hit.transform.gameObject.CompareTag("Enemy"))
+                    target = hit.transform;
+                else
+                    target = null;
+                nonTargetPos = hit.point;
+                selectedSkill.ApproachUseSkill();
+                veiwSoundIndicator = false;
             }
         }
     }
 
-    private void GetMouseTarget()
+
+    public void ViewSoundRange(bool _set, float _soundRange)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        veiwSoundIndicator = _set;
+        if(soundIndicator == null)
+            soundIndicator = Instantiate(skillIndicatorPrefab);
+        soundIndicator.SetActive(_set);
+        soundIndicator.transform.localScale = Vector3.one * _soundRange;
+        StartCoroutine(nameof(TraceMouse));
+    }
+    private IEnumerator TraceMouse()
+    {
+        while (veiwSoundIndicator)
         {
-            if (hit.collider.gameObject.CompareTag("Enemy"))
+            yield return null;
+            yield return null;
+            yield return null;
+            yield return null;
+            int terrainLayer = LayerMask.GetMask("Terrain");
+
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayer))
             {
-                target = hit.collider.gameObject;
-                targetPos = hit.collider.transform.position;
-            }
-            else
-            {
-                target = null;
-                targetPos = hit.point;
+                Vector3 worldPos = hit.point;
+                soundIndicator.transform.position = new Vector3(worldPos.x, worldPos.y + 0.05f, worldPos.z);
             }
         }
     }
 
+    public void MakeSound(Vector3 _pos, float _soundRange)
+    {
+        Debug.Log("소리남");
+        Collider[] colls = Physics.OverlapSphere(_pos, _soundRange);
+        foreach (Collider coll in colls)
+        {
+            EnemyAI enemyAI = coll.GetComponent<EnemyAI>();
+            if (enemyAI != null)
+            {
+                enemyAI.Alarm();
+            }
+        }
+
+        Vector3 newPos = new Vector3(_pos.x, 0.01f, _pos.z);
+        GameObject sound = Instantiate(Resources.Load<GameObject>("Sound"), newPos, Quaternion.identity);
+        sound.transform.localScale = Vector3.one * _soundRange;
+        Destroy(sound, 1f);
+    }
+
+    private void NotUseSkill()
+    {
+        selectedSkill = null;
+        skillIndicatorPrefab.SetActive(false);
+        ViewSoundRange(false, 1f);
+    }
     #endregion
 
+    //귀한 작품
     public void OnDamage()
     {
         if (isDie)
@@ -346,6 +315,7 @@ public class NinjaController : NetworkBehaviour
 
         if (HP <= 0)
         {
+            print("죽음 못움직임");
             isDie = true;
         }
     }
