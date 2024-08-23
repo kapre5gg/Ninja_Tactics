@@ -6,10 +6,11 @@ public class RoomManager : NetworkBehaviour
     public void LeaveBtn()
     {
         DBManager.Session session = new DBManager.Session();
-        if (MainManager.Instance.isRoomMaster) //방장이 나오면 모든 플레이어가 강퇴?
+        if (MainManager.Instance.isRoomMaster) //호스트가 나오면 모든 플레이어가 강퇴?
         {
             //db갱신 이름=null, 사람수 =0
             session.ResetRoomInfo(MainManager.Instance.connectionRoomPort);
+            session.ResetNinjaTactics(MainManager.Instance.connectionRoomPort);
             //서버에게 요청함 방에 모든 인원 퇴출
             //서버가 모든 참가자에게서 방에서 나가는 함수를 실행
             CmdAllLeaveRoom();

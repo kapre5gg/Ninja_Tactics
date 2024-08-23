@@ -46,10 +46,16 @@ public class SessionRoom : NetworkBehaviour
             int index = i;
             portChangeBtns[i].onClick.AddListener(() => ChangePortBtn(index));
         }
-
     }
+
+    private void FixedUpdate()
+    {
+        data = session.LoadSessionInfo();
+    }
+
     private void OnTriggerEnter(Collider other) //룸 고르기 기능
     {
+        data = session.LoadSessionInfo();
         SessionPlayer player = other.GetComponent<SessionPlayer>();
         if (player != null && player.isLocalPlayer)
         {
@@ -57,11 +63,11 @@ public class SessionRoom : NetworkBehaviour
             roomPanel.SetActive(true);
             for (int i = 0; i < sessionItemList.Length; i++)
             {
-                if (i < data.Rows.Count)
+                if (i < data.Rows.Count && (int)data.Rows[i][2] <= 5)
                 {
                     sessionItemList[i].SetActive(true);
                     sessionName[i].text = data.Rows[i][1].ToString();
-                    joinPlayerNum[i].text = data.Rows[i][2].ToString() + " / 10 명";
+                    joinPlayerNum[i].text = data.Rows[i][2].ToString() + " / 5 명";
                 }
             }
         }
@@ -82,7 +88,8 @@ public class SessionRoom : NetworkBehaviour
         if (port == "")
             return;
         MainManager.Instance.MoveScenePort = int.Parse(port);
-
+        if (session.CheckOverFive(port))
+            return;
         //서버, 호스트는 이동이 불다능 > 이동하면 이전 씬의 서버가 닫히므로
         //클라만 이동
         MainManager.Instance.nextSceneNumber = 3;

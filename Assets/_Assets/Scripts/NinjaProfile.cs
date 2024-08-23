@@ -23,7 +23,7 @@ public class NinjaProfile : MonoBehaviour
     }
     public void UpdateHp(int _idx, int _type, int _hp)
     {
-        if (_hp <= 0)
+        if (_hp < 0)
             return;
         switch (_type)
         {
