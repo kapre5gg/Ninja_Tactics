@@ -501,10 +501,7 @@ public class Enemy : MonoBehaviour
             agent.enabled = false;
             anim.SetTrigger("Death");
             gameObject.tag = "Corpse";
-            if (fieldOfView.isViewMeshVisible) // 시야 범위 메쉬가 활성화되어있다면
-            {
-                fieldOfView.isViewMeshVisible = false; // 시야 범위 메쉬 비활성화
-            }
+            fieldOfView.isViewMeshVisible = false; // 시야 범위 메쉬 비활성화
             // 기타 모든 필요한 컴포넌트 비활성화
             fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
             this.enabled = false; // 적 스크립트 자체 비활성화

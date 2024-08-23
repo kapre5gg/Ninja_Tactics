@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CinemachineTarget
   - Enemy
+  - Corpse
   layers:
   - Default
   - TransparentFX
