@@ -88,7 +88,7 @@ public class MeleeAttack : Skill
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Attack");
         SkillManager.instance.MakeSound(casterTr.position, soundRange);
-        caster.target.GetComponent<EnemyAI>().Die();
+        caster.target.GetComponent<Enemy>().Die();
         caster.skillIndicatorPrefab.SetActive(false);
         SkillManager.instance.SkillCool(0);
         caster.NotUseSkill();
@@ -113,7 +113,7 @@ public class Shurican : Skill
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Throw");
         SkillManager.instance.MakeSound(caster.target.position, soundRange);
-        caster.target.GetComponent<EnemyAI>().Die();
+        caster.target.GetComponent<Enemy>().Die();
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
     }
@@ -150,26 +150,27 @@ public class ThrowSomething : Skill
         Collider[] colls = Physics.OverlapSphere(caster.nonTargetPos, soundRange);
         foreach (Collider coll in colls)
         {
-            EnemyAI enemyAI = coll.GetComponent<EnemyAI>();
+            Enemy enemyAI = coll.GetComponent<Enemy>();
             if (enemyAI == null)
-                yield break;
+                continue;
             switch (type)
             {
                 case 0:
                     Debug.Log("돌던짐");
-                    //target.GetComponent <EnemyAI>().Alarm(0);
-
+                    enemyAI.ChangeStunState(StunType.RotateView, 5f, caster.nonTargetPos);
+                    //날라가는 함수
                     break;
                 case 1:
                     Debug.Log("모래던짐");
-                    //target.GetComponent <EnemyAI>().Alarm();
+                    enemyAI.ChangeStunState(StunType.BlockingView, 5f, caster.nonTargetPos);
+                    //날라가는 함수
                     break;
                 case 2:
                     if (SkillManager.instance.lostSakke)
                         yield break;
                     Debug.Log("술던짐");
+                    //날라가는 함수
                     skillCool = 999999f;
-                    //target.GetComponent <EnemyAI>().Alarm();
                     break;
                 default:
                     break;
@@ -200,7 +201,7 @@ public class SlashBlade : Skill
         Collider[] colls = Physics.OverlapSphere(casterTr.position, soundRange);
         foreach (Collider coll in colls)
         {
-            EnemyAI enemyAI = coll.GetComponent<EnemyAI>();
+            Enemy enemyAI = coll.GetComponent<Enemy>();
             if (enemyAI != null)
             {
                 enemyAI.Die();
@@ -318,10 +319,10 @@ public class SkillManager : MonoBehaviour
         Collider[] colls = Physics.OverlapSphere(_pos, _soundRange);
         foreach (Collider coll in colls)
         {
-            EnemyAI enemyAI = coll.GetComponent<EnemyAI>();
+            Enemy enemyAI = coll.GetComponent<Enemy>();
             if (enemyAI != null)
             {
-                enemyAI.Alarm();
+                //enemyAI.Alarm();
             }
         }
 
