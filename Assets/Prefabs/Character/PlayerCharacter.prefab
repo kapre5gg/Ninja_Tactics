@@ -27180,7 +27180,7 @@ MonoBehaviour:
   ninjaType: -1
   isSitting: 0
   curHP: 0
-  ChangeAnimCon: {fileID: 9100000, guid: 83eeb5bd30c6d214aa3453c77b4c6685, type: 2}
+  ChangeAnimCon: {fileID: 9100000, guid: f5ac6e88d1229594e8c45ef1dd31927f, type: 2}
   isDie: 0
   localHpImg: {fileID: 0}
   multiHpImg: {fileID: 0}

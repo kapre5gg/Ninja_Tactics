@@ -139,6 +139,7 @@ public class Shurican : Skill
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
+        SkillManager.instance.isUnavailable = true;
     }
 
     public override void ApproachUseSkill()
@@ -188,7 +189,7 @@ public class ThrowSomething : Skill
                     SkillManager.instance.ThrowSomething("Sneeze Powder", casterTr.position, caster.nonTargetPos, soundRange, type);
                     break;
                 case 2:
-                    if (SkillManager.instance.lostSakke)
+                    if (SkillManager.instance.isUnavailable)
                         yield break;
                     Debug.Log("술던짐");
                     //날라가는 함수
@@ -256,7 +257,7 @@ public class TalktoEnemy : Skill
     }
     public override void ApproachUseSkill()
     {
-        if (IsOffCooldown() && IsTargetSkill() && SkillManager.instance.lostKimono)
+        if (IsOffCooldown() && IsTargetSkill() && SkillManager.instance.isUnavailable)
             casterTr.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
         else
             Debug.Log("스킬 쿨 안돌아옴");
@@ -280,8 +281,7 @@ public class SkillManager : MonoBehaviour
     private NinjaController ninjaCon = null;
     //public Terrain terrain;
     public Skill[] skillSet = new Skill[3];
-    public bool lostSakke = false;
-    public bool lostKimono = false;
+    public bool isUnavailable = false;
     public Skill[] GetSkill(int _type)
     {
         ninjaCon = DBManager.instance.myCon;
@@ -367,13 +367,18 @@ public class SkillManager : MonoBehaviour
 
     public void HasSakke()
     {
-        lostSakke = true;
+        isUnavailable = false;
         skillIcons[2].fillAmount = 1;
         skillSet[2].skillCool = 0;
     }
     public void HasKimono()
     {
-        lostKimono = true;
+        isUnavailable = false;
+        skillIcons[2].fillAmount = 1;
+    }
+    public void HasShuriken()
+    {
+        isUnavailable = false;
         skillIcons[2].fillAmount = 1;
     }
     public void ThrowShuriken(Vector3 _pos, GameObject _target, float _soundRange)
@@ -399,7 +404,7 @@ public class SkillManager : MonoBehaviour
             if (distance < stopDistance)
             {
                 Debug.Log("수리검이 목표 지점에 도달했습니다!");
-
+                shuriken.gameObject.layer = LayerMask.NameToLayer("Item");
                 // 소리 효과 호출
                 SkillManager.instance.MakeSound(target.transform.position, soundRange);
                 Enemy enemy = target.GetComponent<Enemy>();
@@ -470,7 +475,6 @@ public class SkillManager : MonoBehaviour
                         break;
                     case 2:
                         // sakke에 대한 효과
-                        enemy.Die();
                         break;
                     default:
                         Debug.Log("알 수 없는 타입");

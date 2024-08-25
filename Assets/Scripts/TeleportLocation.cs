@@ -1,14 +1,80 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.EventSystems;
 
 public class TeleportLocation : MonoBehaviour
 {
     [SerializeField] private Transform target; // 이동할 대상
     [SerializeField] private Transform destination; // 목표 위치
     [SerializeField] private float moveSpeed = 6f; // 이동 속도
+    [SerializeField] private GameObject hookIcon; // 마우스 오버 시 표시할 아이콘
+    private Camera mainCamera; // 메인 카메라
 
-    // 대상(target)을 목표 위치(destination)로 부드럽게 이동시키는 메서드
+    private void Start()
+    {
+        // 메인 카메라를 가져옵니다
+        mainCamera = Camera.main;
+        if (hookIcon != null)
+        {
+            hookIcon.SetActive(false);
+        }
+    }
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                // 3D 오브젝트와 충돌했을 때
+                if (hit.transform == transform)
+                {
+                    Debug.Log("클릭");
+                    // 오브젝트를 목표로 설정하여 텔레포트 처리
+                    Teleport(target);
+                }
+            }
+        }
+
+        // 마우스 오버 시 처리
+        HandleMouseOver();
+    }
+
+    private void HandleMouseOver()
+    {
+        if (hookIcon != null)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.transform == transform)
+                {
+                    // 마우스가 3D 오브젝트 위에 있을 때
+                    hookIcon.SetActive(true);
+
+                    // hookIcon 위치를 3D 오브젝트의 위로 설정
+                    Vector3 screenPosition = mainCamera.WorldToScreenPoint(transform.position);
+                    hookIcon.transform.position = screenPosition;
+                }
+                else
+                {
+                    // 마우스가 3D 오브젝트를 벗어났을 때
+                    hookIcon.SetActive(false);
+                }
+            }
+            else
+            {
+                // 마우스가 화면 밖으로 나갔을 때
+                hookIcon.SetActive(false);
+            }
+        }
+    }
+
     public void Teleport(Transform target)
     {
         if (target != null && destination != null)

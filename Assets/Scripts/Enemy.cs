@@ -1,9 +1,7 @@
 using System.Collections;
-using System.Xml.Serialization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
 
 public enum EnemyType { Melee, Range }
 public enum EnemyState { Patrol, Search, Attack, Stun, Dead }
@@ -150,7 +148,6 @@ public class Enemy : MonoBehaviour
 
         if (isRange) // 공격 범위 안에 플레이어가 존재하면
         {
-            Debug.Log("공격 전환");
 
             enemyState = EnemyState.Attack; // 공격 상태로 전환
 
@@ -324,7 +321,6 @@ public class Enemy : MonoBehaviour
         isAttacking = true; // 공격 중 설정
         agent.isStopped = true;
         anim.SetTrigger("Attack"); // 공격 애니메이션 실행
-        Debug.Log("공격");
         if (enemyType == EnemyType.Range)
         {
             yield return new WaitForSeconds(0.2f);
@@ -348,7 +344,8 @@ public class Enemy : MonoBehaviour
         }
 
         yield return new WaitForSeconds(attackInterval);
-
+        NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
+        targetNinja.OnDamage();
         isAttacking = false; // 공격 중 상태 해제
         agent.isStopped = false; // 에이전트 이동 재개
     }
@@ -516,7 +513,7 @@ public class Enemy : MonoBehaviour
             gameObject.tag = "Corpse";
             fieldOfView.isViewMeshVisible = false; // 시야 범위 메쉬 비활성화
             // 기타 모든 필요한 컴포넌트 비활성화
-            fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
+            //fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
             this.enabled = false; // 적 스크립트 자체 비활성화
         }
     }

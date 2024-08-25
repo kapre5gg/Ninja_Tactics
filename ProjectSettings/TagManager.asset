@@ -7,6 +7,9 @@ TagManager:
   - CinemachineTarget
   - Enemy
   - Corpse
+  - Shuriken
+  - Kimono
+  - Sakke
   layers:
   - Default
   - TransparentFX
@@ -20,7 +23,7 @@ TagManager:
   - Obtacle1
   - Obtacle2
   - Enemy
-  - 
+  - Item
   - 
   - 
   - 

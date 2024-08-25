@@ -832,8 +832,8 @@ MonoBehaviour:
   clientStatus: 0
   nextSceneNumber: 1
   scenes:
-  - Assets/_Assets/Scenes/02 LOBBY.unity
-  - Assets/_Assets/Scenes/03 ROOM1.unity
+  - Assets/Scenes/02 LOBBY.unity
+  - Assets/Scenes/03 ROOM1.unity
   moveADDR: localhost
   MoveScenePort: 0
   connectionRoomIndex: -1
@@ -992,7 +992,11 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: fad1376191801784ba63d5cb8434f2fd, type: 3}
   - soundName: 00 LOADING
     clip: {fileID: 8300000, guid: aa01ff991e974dd49a9dc78e552cee06, type: 3}
-  sfxSounds: []
+  sfxSounds:
+  - soundName: "\uD53C\uACA9 1"
+    clip: {fileID: 8300000, guid: ca3d53204bc07d641b61042bce54f641, type: 3}
+  - soundName: "\uD53C\uACA9 2"
+    clip: {fileID: 8300000, guid: 286685216d6801a45988d097f036237b, type: 3}
   bgmPlayer: {fileID: 1628370306}
   sfxPlayer:
   - {fileID: 1628370313}
@@ -1000,7 +1004,9 @@ MonoBehaviour:
   - {fileID: 1628370311}
   - {fileID: 1628370310}
   - {fileID: 1628370309}
-  playSoundName: []
+  playSoundName:
+  - "\uD53C\uACA9 1"
+  - "\uD53C\uACA9 2"
 --- !u!4 &1628370308
 Transform:
   m_ObjectHideFlags: 0
@@ -1967,7 +1973,7 @@ MonoBehaviour:
   autoStartServerBuild: 0
   autoConnectClientBuild: 0
   offlineScene: 
-  onlineScene: 
+  onlineScene: Assets/Scenes/03 ROOM1.unity
   transport: {fileID: 1914568917}
   networkAddress: localhost
   maxConnections: 100

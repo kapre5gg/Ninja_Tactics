@@ -76,7 +76,27 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 5bd755e9c15d9b342802fe43cde865c9,
         type: 3}
       propertyPath: m_Name
-      value: Sake
+      value: Sakke
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5bd755e9c15d9b342802fe43cde865c9,
+        type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5bd755e9c15d9b342802fe43cde865c9,
+        type: 3}
+      propertyPath: m_TagString
+      value: Sakke
+      objectReference: {fileID: 0}
+    - target: {fileID: 7750397243111347764, guid: 5bd755e9c15d9b342802fe43cde865c9,
+        type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: 5bd755e9c15d9b342802fe43cde865c9,
+        type: 3}
+      propertyPath: m_Layer
+      value: 12
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

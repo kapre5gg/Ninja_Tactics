@@ -2,7 +2,10 @@ using HighlightPlus;
 using Mirror;
 using Mysqlx.Crud;
 using StarterAssets;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
@@ -83,9 +86,10 @@ public class NinjaController : NetworkBehaviour
         UseSkillSet();
         Teleport();
         MovingCorpse();
+        PickUpItem();
         float speed = agent.velocity.magnitude;
         anim.SetFloat("MoveSpeed", speed);
-        if(speed < 0.1) anim.SetBool("Running", false);
+        if (speed < 0.1) anim.SetBool("Running", false);
     }
 
     public void StartNinja()
@@ -128,7 +132,7 @@ public class NinjaController : NetworkBehaviour
             }
             if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지 (뛰기)
             {
-                if(!isSitting && !isCarryingCorpse)
+                if (!isSitting && !isCarryingCorpse)
                 {
                     ninjaSpeed = ninjaRunSpeed;
                     anim.SetBool("Running", true);
@@ -208,19 +212,22 @@ public class NinjaController : NetworkBehaviour
         if (isSitting) //멈출때 애니메이션 바뀌기
             anim.SetTrigger("Sit");
         //else
-            //anim.SetTrigger("Idle");
+        //anim.SetTrigger("Idle");
     }
     #endregion
 
     #region 스킬ASD
     private void KeyDownASD()
     {
-        if (Input.GetKeyDown(KeyCode.A))
-            ReadySkill(0);
-        else if (Input.GetKeyDown(KeyCode.S))
-            ReadySkill(1);
-        else if (Input.GetKeyDown(KeyCode.D))
-            ReadySkill(2);
+        if (!SkillManager.instance.isUnavailable)
+        {
+            if (Input.GetKeyDown(KeyCode.A))
+                ReadySkill(0);
+            else if (Input.GetKeyDown(KeyCode.S))
+                ReadySkill(1);
+            else if (Input.GetKeyDown(KeyCode.D))
+                ReadySkill(2);
+        }
     }
     private void ReadySkill(int skillIdx)
     {
@@ -290,6 +297,9 @@ public class NinjaController : NetworkBehaviour
     {
         if (isDie)
             return;
+        anim.SetTrigger("Hit");
+        if (ninjaType == 1) SoundManager.instance.PlaySE("피격 2");
+        else SoundManager.instance.PlaySE("피격 1");
         curHP -= 1;
         localHpImg.fillAmount = curHP / (float)maxHP;
         tacticsManager.CmdUpdateHP(tacticsManager.localPlayerNum, curHP);
@@ -324,7 +334,7 @@ public class NinjaController : NetworkBehaviour
                 TeleportLocation teleportLocation = hit.transform.GetComponent<TeleportLocation>();
                 if (teleportLocation != null)
                 {
-                    agent.SetDestination(hit.point); // Set the agent destination to the hit point
+                    agent.SetDestination(hit.point);
                     StartCoroutine(CheckAndTeleport(teleportLocation));
                 }
                 else
@@ -337,24 +347,19 @@ public class NinjaController : NetworkBehaviour
 
     private IEnumerator CheckAndTeleport(TeleportLocation teleportLocation)
     {
-        // Wait until the agent has finished calculating the path
         while (agent.pathPending)
         {
             yield return null;
         }
 
-        // Wait until the agent reaches the destination
         while (agent.remainingDistance > agent.stoppingDistance)
         {
             yield return null;
         }
 
-        // Once reached, check if there is no remaining path and the agent has stopped moving
         if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
         {
-            agent.enabled = false;
             teleportLocation.Teleport(transform);
-            agent.enabled = true;
         }
     }
     private void MovingCorpse()
@@ -403,6 +408,35 @@ public class NinjaController : NetworkBehaviour
             carriedCorpse.parent = null;  // 부모 관계 해제
             carriedCorpse.position = transform.position;  // 플레이어 위치에 내려놓기
             carriedCorpse = null;  // 들고 있는 시체 초기화
+        }
+    }
+
+    private void PickUpItem()
+    {
+        Dictionary<string, Action> itemActions = new Dictionary<string, Action>
+        {
+            { "Shuriken", () => SkillManager.instance.HasShuriken() },
+            { "Kimono", () => SkillManager.instance.HasKimono() },
+            { "Sakke", () => SkillManager.instance.HasSakke() }
+        };
+
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1f);
+
+        foreach (var collider in hitColliders)
+        {
+            if (collider.gameObject.layer == LayerMask.NameToLayer("Item"))
+            {
+                string itemTag = collider.tag;
+
+                if (itemActions.TryGetValue(itemTag, out Action itemAction))
+                {
+                    Debug.Log($"{itemTag} 획득");
+                    itemAction.Invoke();
+                    collider.gameObject.layer = 0;
+                    Destroy(collider.gameObject);
+                    break;
+                }
+            }
         }
     }
 }
