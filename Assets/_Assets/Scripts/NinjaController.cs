@@ -1,5 +1,6 @@
 using HighlightPlus;
 using Mirror;
+using Mysqlx.Crud;
 using StarterAssets;
 using System.Collections;
 using UnityEngine;
@@ -45,6 +46,9 @@ public class NinjaController : NetworkBehaviour
     public HighlightEffect highlightEffect;
     public NavMeshAgent agent;
 
+    private Transform carriedCorpse = null;  // 현재 들고 있는 시체
+    private bool isCarryingCorpse = false;
+
     public override void OnStartLocalPlayer()
     {
         playerclass.gameObject.SetActive(false);
@@ -77,6 +81,10 @@ public class NinjaController : NetworkBehaviour
         SwitchNinjaSit();
         KeyDownASD();
         UseSkillSet();
+        Teleport();
+        MovingCorpse();
+        float speed = agent.velocity.magnitude;
+        anim.SetFloat("MoveSpeed", speed);
     }
 
     public void StartNinja()
@@ -117,7 +125,7 @@ public class NinjaController : NetworkBehaviour
             else
             {
                 ninjaSpeed = ninjaStandSpeed;
-                anim.SetTrigger("Walk");
+                
             }
             if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지 (뛰기)
             {
@@ -146,8 +154,8 @@ public class NinjaController : NetworkBehaviour
             isSitting = !isSitting;
             if (isSitting)
                 anim.SetTrigger("Sit");
-            else
-                anim.SetTrigger("Idle");
+            //else
+                //anim.SetTrigger("Idle");
         }
     }
 
@@ -198,8 +206,8 @@ public class NinjaController : NetworkBehaviour
         }
         if (isSitting) //멈출때 애니메이션 바뀌기
             anim.SetTrigger("Sit");
-        else
-            anim.SetTrigger("Idle");
+        //else
+            //anim.SetTrigger("Idle");
     }
     #endregion
 
@@ -304,4 +312,98 @@ public class NinjaController : NetworkBehaviour
         isDie = true;
         Destroy(gameObject, 5f); //5초후 시체가 사라짐
     }
+
+    private void Teleport()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                TeleportLocation teleportLocation = hit.transform.GetComponent<TeleportLocation>();
+                if (teleportLocation != null)
+                {
+                    agent.SetDestination(hit.point); // Set the agent destination to the hit point
+                    anim.SetTrigger("Walk"); // Start the walking animation
+                    StartCoroutine(CheckAndTeleport(teleportLocation));
+                }
+                else
+                {
+                    Debug.LogWarning("TeleportLocation 스크립트가 이 오브젝트에 없습니다.");
+                }
+            }
+        }
+    }
+
+    private IEnumerator CheckAndTeleport(TeleportLocation teleportLocation)
+    {
+        // Wait until the agent has finished calculating the path
+        while (agent.pathPending)
+        {
+            yield return null;
+        }
+
+        // Wait until the agent reaches the destination
+        while (agent.remainingDistance > agent.stoppingDistance)
+        {
+            yield return null;
+        }
+
+        // Once reached, check if there is no remaining path and the agent has stopped moving
+        if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+        {
+            agent.enabled = false;
+            teleportLocation.Teleport(transform);
+            agent.enabled = true;
+        }
+    }
+    private void MovingCorpse()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
+            {
+                if (hit.transform.gameObject.CompareTag("Corpse"))
+                {
+                    if (carriedCorpse == null)  // 시체를 들고 있지 않다면
+                    {
+                        StartCarryingCorpse(hit.transform);
+                    }
+                    else
+                    {
+                        StopCarryingCorpse();
+                    }
+                }
+            }
+        }
+    }
+    private void StartCarryingCorpse(Transform corpse)
+    {
+        if (!isCarryingCorpse)  // 현재 시체를 들고 있지 않을 때만 실행
+        {
+            isCarryingCorpse = true;
+            anim.SetBool("Carrying", true);  // 애니메이션 상태 변경
+            Enemy enemy = corpse.GetComponent<Enemy>();
+            if (enemy != null) { enemy.anim.SetBool("Carried", true); }
+            carriedCorpse = corpse;
+            carriedCorpse.position = transform.position + Vector3.up;  // 플레이어 위에 시체를 배치
+            carriedCorpse.parent = transform;  // 플레이어의 자식으로 설정하여 같이 이동
+        }
+    }
+
+    private void StopCarryingCorpse()
+    {
+        if (isCarryingCorpse)  // 현재 시체를 들고 있을 때만 실행
+        {
+            isCarryingCorpse = false;
+            anim.SetBool("Carrying", false);  // 애니메이션 상태 변경
+            Enemy enemy = carriedCorpse.GetComponent<Enemy>();
+            if (enemy != null) { enemy.anim.SetBool("Carried", false); }
+            carriedCorpse.parent = null;  // 부모 관계 해제
+            carriedCorpse.position = transform.position;  // 플레이어 위치에 내려놓기
+            carriedCorpse = null;  // 들고 있는 시체 초기화
+        }
+    }
 }
+

@@ -1,6 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 [System.Serializable]
 public class Sound
@@ -20,6 +20,7 @@ public class SoundManager : MonoBehaviour
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
+            SceneManager.sceneLoaded += OnSceneLoaded; // 씬이 로드될 때 호출
         }
         else
         {
@@ -48,7 +49,6 @@ public class SoundManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        instance = this;
         PlayRandomBGM(); // 초기 BGM 재생
     }
 
@@ -151,5 +151,27 @@ public class SoundManager : MonoBehaviour
         }
 
         bgmPlayer.volume = startVolume;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬 이름에 맞는 BGM 재생
+        PlaySceneSpecificBGM(scene.name);
+    }
+
+    private void PlaySceneSpecificBGM(string sceneName)
+    {
+        // 씬 이름에 맞는 BGM을 찾아서 재생
+        foreach (Sound sound in bgmSounds)
+        {
+            if (sound.soundName == sceneName)
+            {
+                bgmPlayer.clip = sound.clip;
+                bgmPlayer.Play();
+                return;
+            }
+        }
+
+        Debug.Log("씬에 맞는 BGM이 없습니다: " + sceneName);
     }
 }

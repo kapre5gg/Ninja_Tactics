@@ -6,7 +6,7 @@ using UnityEngine.AI;
 using static UnityEngine.GraphicsBuffer;
 
 public enum EnemyType { Melee, Range }
-public enum EnemyState { Patrol, Search, Attack, Stun }
+public enum EnemyState { Patrol, Search, Attack, Stun, Dead }
 public enum StunType { None, Move, Stun, FixedView, BlockingView, RotateView };
 
 public class Enemy : MonoBehaviour
@@ -24,7 +24,7 @@ public class Enemy : MonoBehaviour
 
     [Header("Components")]
     protected NavMeshAgent agent; // 내비메쉬
-    [SerializeField] protected Animator anim; // 애니메이션
+    [SerializeField] public Animator anim; // 애니메이션
     [SerializeField] protected FieldOfView fieldOfView; // 시야
     [SerializeField] protected GameObject exclamationMark; // 적 발견시 머리 위에 뜨는 느낌표 오브젝트
 
@@ -50,6 +50,7 @@ public class Enemy : MonoBehaviour
     public float stunTime;
     public float initialViewRadius; // (스턴 로직용)초기 시야 범위
     private Vector3 targetPosition;
+    public ParticleSystem[] stunEffects;
 
     //공격 관련 변수
     public Transform atkTarget; // 현재 타겟 위치 저장 변수
@@ -409,6 +410,10 @@ public class Enemy : MonoBehaviour
         // 스턴이 끝났을 때의 상태 복원
         fieldOfView.viewRadius = initialViewRadius;
         anim.SetInteger("StunID", 0);
+        foreach (var effect in stunEffects)
+        {
+            if (effect != null) effect.gameObject.SetActive(false);
+        }
         agent.isStopped = false;
         
         stunType = StunType.None;
@@ -417,6 +422,7 @@ public class Enemy : MonoBehaviour
     //StunID(스턴 애니메이션) : 0(None), 1(Stun), 2(BlockingView), 3(FixedView), 4(RotateView)
     private void Move(Vector3 targetPostion) // 특정 장소로 이동하도록
     {
+        stunEffects[0].gameObject.SetActive(true);
         float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
         anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
         agent.SetDestination(targetPostion);
@@ -424,6 +430,7 @@ public class Enemy : MonoBehaviour
 
     private void Stun() // 단일, 멈추고 시야 차단
     {
+        stunEffects[1].gameObject.SetActive(true);
         agent.isStopped = true;
         anim.SetFloat("MoveSpeed", 0);
         anim.SetInteger("StunID", 1);
@@ -431,6 +438,7 @@ public class Enemy : MonoBehaviour
     }
     private void BlockingView() // 범위 내 시야 범위 축소 - 재채기분말(사무라이에게도 통함)
     {
+        stunEffects[2].gameObject.SetActive(true);
         agent.isStopped = true;
         anim.SetFloat("MoveSpeed", 0);
         anim.SetInteger("StunID", 2);
@@ -439,6 +447,7 @@ public class Enemy : MonoBehaviour
 
     private void FixedView(Vector3 targetPostion) // 단일, 멈추고 시야고정 - 유혹
     {
+        stunEffects[3].gameObject.SetActive(true);
         agent.isStopped = true;
         anim.SetFloat("MoveSpeed", 0);
         anim.SetInteger("StunID", 3);
@@ -452,6 +461,7 @@ public class Enemy : MonoBehaviour
     
     private void RotateView(Vector3 targetPostion) // 범위, 시야 돌리기 - 돌던지기
     {
+        stunEffects[4].gameObject.SetActive(true);
         // 타겟 방향으로 회전
         Vector3 direction = (targetPostion - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
@@ -466,6 +476,7 @@ public class Enemy : MonoBehaviour
 
     public void DrinkSakke(Vector3 targetPostion)
     {
+        stunEffects[5].gameObject.SetActive(true);
         // 타겟 방향으로 회전
         Vector3 direction = (targetPostion - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
@@ -478,6 +489,7 @@ public class Enemy : MonoBehaviour
 
     public void PlayWithKuma(Vector3 targetPostion)
     {
+        stunEffects[6].gameObject.SetActive(true);
         // 타겟 방향으로 회전
         Vector3 direction = (targetPostion - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
@@ -488,6 +500,7 @@ public class Enemy : MonoBehaviour
         anim.SetInteger("StunID", 6);
 
     }
+
     #endregion
 
     #region 사망
@@ -507,6 +520,7 @@ public class Enemy : MonoBehaviour
             this.enabled = false; // 적 스크립트 자체 비활성화
         }
     }
+
     #endregion
 
     #region 대사 출력
@@ -561,7 +575,6 @@ public class Enemy : MonoBehaviour
     #region UI
     private void OnMouseDown() // 마우스 클릭했을 때 시야각 표시
     {
-        Debug.Log("클릭");
         fieldOfView.isViewMeshVisible = !fieldOfView.isViewMeshVisible;
     }
 

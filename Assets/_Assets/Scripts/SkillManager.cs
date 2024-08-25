@@ -45,7 +45,12 @@ public abstract class Skill
     public abstract void UseSkill();
     public abstract void ApproachUseSkill();
 
-
+    protected void RotateToFace(Vector3 targetPosition) // 타겟 방향으로 회전
+    {
+        Vector3 direction = (targetPosition - casterTr.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(direction);
+        casterTr.rotation = Quaternion.Slerp(casterTr.rotation, lookRotation, Time.deltaTime * 10f);
+    }
     protected IEnumerator ApproachUseSkillCor()
     {
         yield return null;
@@ -54,6 +59,24 @@ public abstract class Skill
             casterCon.ChangeAnim("SitWalk");
         else
             casterCon.ChangeAnim("Walk");
+
+        Vector3 targetPosition;
+        if (IsTargetSkill())
+        {
+            targetPosition = casterCon.target.position;
+        }
+        else
+        {
+            targetPosition = casterCon.nonTargetPos;
+        }
+
+        // 타겟 방향으로 회전
+        while (Vector3.Angle(casterTr.forward, (targetPosition - casterTr.position).normalized) > 1f)
+        {
+            RotateToFace(targetPosition);
+            yield return null;
+        }
+
         if (IsTargetSkill())
         {
             while (!IsTargetInRange(casterCon.target))
@@ -150,19 +173,19 @@ public class ThrowSomething : Skill
         Collider[] colls = Physics.OverlapSphere(caster.nonTargetPos, soundRange);
         foreach (Collider coll in colls)
         {
-            Enemy enemyAI = coll.GetComponent<Enemy>();
-            if (enemyAI == null)
+            Enemy enemy = coll.GetComponent<Enemy>();
+            if (enemy == null)
                 continue;
             switch (type)
             {
                 case 0:
                     Debug.Log("돌던짐");
-                    enemyAI.ChangeStunState(StunType.RotateView, 5f, caster.nonTargetPos);
+                    enemy.ChangeStunState(StunType.RotateView, 5f, caster.nonTargetPos);
                     //날라가는 함수
                     break;
                 case 1:
                     Debug.Log("모래던짐");
-                    enemyAI.ChangeStunState(StunType.BlockingView, 5f, caster.nonTargetPos);
+                    enemy.ChangeStunState(StunType.BlockingView, 5f, caster.nonTargetPos);
                     //날라가는 함수
                     break;
                 case 2:
@@ -319,14 +342,25 @@ public class SkillManager : MonoBehaviour
         Collider[] colls = Physics.OverlapSphere(_pos, _soundRange);
         foreach (Collider coll in colls)
         {
-            Enemy enemyAI = coll.GetComponent<Enemy>();
-            if (enemyAI != null)
+            Enemy enemy = coll.GetComponent<Enemy>();
+            if (enemy != null)
             {
                 //enemyAI.Alarm();
             }
         }
 
         Vector3 newPos = new Vector3(_pos.x, 0.01f, _pos.z);
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(_pos + Vector3.up * 10f, Vector3.down, out hit, 20f, LayerMask.GetMask("Terrain")))
+        {
+            newPos.y = hit.point.y;  // 지형의 높이에 맞춰 위치 설정
+        }
+        else
+        {
+            newPos.y = 1f; // Raycast가 실패한 경우 기본 높이로 설정
+        }
         GameObject sound = Instantiate(Resources.Load<GameObject>("Sound"), newPos, Quaternion.identity);
         sound.transform.localScale = Vector3.one * _soundRange;
         Destroy(sound, 1f);
@@ -343,4 +377,5 @@ public class SkillManager : MonoBehaviour
         lostKimono = true;
         skillIcons[2].fillAmount = 1;
     }
+
 }

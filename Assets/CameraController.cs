@@ -8,14 +8,18 @@ public class CameraController : MonoBehaviour
     public float minY = 10f; // 줌 인 제한
     public float maxY = 80f; // 줌 아웃 제한
 
-    public Vector2 mapSize; // 맵 크기 (x, z) 방향으로
-
-    private Vector2 panLimit;
+    public GameObject boundaryObject; // 카메라 이동 범위를 정의하는 Collider가 있는 GameObject
+    private Collider boundaryCollider;
 
     void Start()
     {
-        // 맵 크기 기반으로 panLimit 설정
-        panLimit = new Vector2(mapSize.x / 2, mapSize.y / 2);
+        // boundaryObject에서 Collider 가져오기
+        boundaryCollider = boundaryObject.GetComponent<Collider>();
+
+        if (boundaryCollider == null)
+        {
+            Debug.LogError("boundaryObject에 Collider가 없습니다.");
+        }
     }
 
     void Update()
@@ -45,10 +49,23 @@ public class CameraController : MonoBehaviour
         pos.y -= scroll * scrollSpeed * 100f * Time.deltaTime;
 
         // 카메라 이동 제한
-        pos.x = Mathf.Clamp(pos.x, -panLimit.x, panLimit.x);
-        pos.y = Mathf.Clamp(pos.y, minY, maxY);
-        pos.z = Mathf.Clamp(pos.z, -panLimit.y, panLimit.y);
+        pos = ClampPositionToCollider(pos);
 
         transform.position = pos;
     }
+
+    Vector3 ClampPositionToCollider(Vector3 position)
+    {
+        if (boundaryCollider == null)
+            return position;
+
+        // Collider의 Bounds를 사용하여 카메라의 위치 제한
+        Bounds bounds = boundaryCollider.bounds;
+        position.x = Mathf.Clamp(position.x, bounds.min.x, bounds.max.x);
+        position.y = Mathf.Clamp(position.y, minY, maxY);
+        position.z = Mathf.Clamp(position.z, bounds.min.z, bounds.max.z);
+
+        return position;
+    }
 }
+
