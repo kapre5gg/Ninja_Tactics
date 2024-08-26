@@ -21,7 +21,7 @@ public class NinjaProfile : MonoBehaviour
             item.text = _name;
         }
     }
-    public void UpdateHp(int _idx, int _type, int _hp)
+    public void UpdateHp(int _type, int _hp)
     {
         if (_hp < 0)
             return;
@@ -29,10 +29,10 @@ public class NinjaProfile : MonoBehaviour
         {
             case 0:
             case 1:
-                hpSlides[_idx].fillAmount = _hp / 3f;
+                hpSlides[_type].fillAmount = _hp / 3f;
                 break;
             case 2:
-                hpSlides[_idx].fillAmount = _hp / 5f;
+                hpSlides[_type].fillAmount = _hp / 5f;
                 break;
             default:
                 break;

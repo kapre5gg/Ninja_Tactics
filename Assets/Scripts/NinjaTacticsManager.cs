@@ -174,7 +174,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     private void RpcUpdateHP(int _playerNum, int _hp)
     {
         playerHPs[_playerNum] = _hp;
-        profiles[_playerNum].GetComponent<NinjaProfile>().UpdateHp(_playerNum, playerSelects[_playerNum], playerHPs[_playerNum]);
+        profiles[_playerNum].GetComponent<NinjaProfile>().UpdateHp(playerSelects[_playerNum], playerHPs[_playerNum]);
     }
     #endregion
 
