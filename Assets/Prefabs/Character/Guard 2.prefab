@@ -957,8 +957,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uD480\uC232\uC5D0 \uC228\uB294\uB2E4\uACE0 \uBAA8\uB97C\uC904 \uC54C\uC558\uB290\uB0D0!!"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: bb3e9045400ce284a8125fc2c5c10959, type: 2}
-  m_sharedMaterial: {fileID: -8416501528421488761, guid: bb3e9045400ce284a8125fc2c5c10959,
+  m_fontAsset: {fileID: 11400000, guid: 8204c7f2863985b45b24609e5680d93e, type: 2}
+  m_sharedMaterial: {fileID: -8416501528421488761, guid: 8204c7f2863985b45b24609e5680d93e,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -1236,6 +1236,7 @@ MonoBehaviour:
   isDead: 0
   stunTime: 5
   initialViewRadius: 0
+  stunEffects: []
   atkTarget: {fileID: 0}
   currTarget: {fileID: 0}
   attackInterval: 1.5

@@ -219,15 +219,12 @@ public class NinjaController : NetworkBehaviour
     #region ½ºÅ³ASD
     private void KeyDownASD()
     {
-        if (!SkillManager.instance.isUnavailable)
-        {
             if (Input.GetKeyDown(KeyCode.A))
                 ReadySkill(0);
             else if (Input.GetKeyDown(KeyCode.S))
                 ReadySkill(1);
             else if (Input.GetKeyDown(KeyCode.D))
                 ReadySkill(2);
-        }
     }
     private void ReadySkill(int skillIdx)
     {

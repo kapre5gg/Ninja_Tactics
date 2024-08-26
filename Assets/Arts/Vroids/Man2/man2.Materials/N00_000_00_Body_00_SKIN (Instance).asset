@@ -73,7 +73,7 @@ Material:
     - _AlphaToMask: 0
     - _BlendMode: 1
     - _BumpScale: 1
-    - _CullMode: 2
+    - _CullMode: 0
     - _Cutoff: 0.5
     - _DebugMode: 0
     - _DstBlend: 0

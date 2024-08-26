@@ -134,6 +134,7 @@ public class Shurican : Skill
 
     public override void UseSkill()
     {
+        if(SkillManager.instance.isUnavailable) return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("ThrowShuriken");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
