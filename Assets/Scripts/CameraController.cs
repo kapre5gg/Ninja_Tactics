@@ -11,6 +11,7 @@ public class CameraController : MonoBehaviour
     public float maxY = 80f; // 줌 아웃 제한
     private Vector3 direction = Vector3.zero;
     private float currentAngle = 0.0f;
+    public NinjaTacticsManager tacticsManager;
     public Vector3 target;
     public float radius;
 
@@ -34,7 +35,9 @@ public class CameraController : MonoBehaviour
 
     void FixedUpdate()
     {
-        target = transform.position + transform.forward * Mathf.Sqrt(Mathf.Pow(height, 2) + Mathf.Pow(radius, 2));
+        if (!tacticsManager.ISGamePlay)
+            return;
+        //target = transform.position + transform.forward * Mathf.Sqrt(Mathf.Pow(height, 2) + Mathf.Pow(radius, 2));
         GetDirection();
         MouseOutScreen();
         MouseRotate();
@@ -43,7 +46,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-        CallMyCharactor();
+        CallCharacters();
     }
 
     private void CameraMove()
@@ -144,27 +147,47 @@ public class CameraController : MonoBehaviour
         transform.LookAt(_target);
     }
 
-
-    
-    private void CallMyCharactor()
+    private void CallCharacters()
     {
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지
-            {
-                if (cor != null)
-                {
-                    StopCoroutine(cor);
-                }
-                cor = StartCoroutine(nameof(MoveCamera));
-            }
-            lastClickTime = Time.time;
+            DoubleClick(0);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            DoubleClick(1);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            DoubleClick(2);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha4))
+        {
+            DoubleClick(3);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha5))
+        {
+            DoubleClick(4);
         }
     }
-    private IEnumerator MoveCamera()
+    private void DoubleClick(int _num)
     {
-        Vector3 myNinjaPos = DBManager.instance.myCon.transform.position;
-        Vector3 newPos = new Vector3(myNinjaPos.x, transform.position.y, myNinjaPos.z);
+        if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지
+        {
+            if (cor != null)
+            {
+                StopCoroutine(cor);
+            }
+            cor = StartCoroutine(MoveCamera(_num));
+        }
+        lastClickTime = Time.time;
+    }
+    private IEnumerator MoveCamera(int _num)
+    {
+        target = tacticsManager.playerNinjaCons[_num].transform.position;
+        if (target == Vector3.zero)
+            yield break;
+        Vector3 newPos = new Vector3(target.x, transform.position.y, target.z);
         float _t = 0f;
         while (_t < 0.2f)
         {

@@ -4146,7 +4146,7 @@ GameObject:
   - component: {fileID: 6542544847853984605}
   - component: {fileID: 1159102932078006178}
   - component: {fileID: 4080214086596205989}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Nickname Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5921,7 +5921,7 @@ GameObject:
   - component: {fileID: 8222288232660399383}
   - component: {fileID: 4842804364966852006}
   - component: {fileID: 5458883526188510599}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Employee Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -12150,7 +12150,7 @@ GameObject:
   - component: {fileID: 7952686175078272498}
   - component: {fileID: 1440279514018067904}
   - component: {fileID: 5251499974554557268}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15648,7 +15648,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8569869579909928005}
   - component: {fileID: 4437721410726198588}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Floating
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19907,7 +19907,7 @@ GameObject:
   - component: {fileID: 4488485357701566079}
   - component: {fileID: 3307280796350966220}
   - component: {fileID: 7112066483223913239}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Class
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -27111,7 +27111,8 @@ GameObject:
   - component: {fileID: 5611917479875402685}
   - component: {fileID: 6269905029310601279}
   - component: {fileID: 7550341026483195589}
-  m_Layer: 0
+  - component: {fileID: 4293529512262398586}
+  m_Layer: 3
   m_Name: PlayerCharacter
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -27150,7 +27151,7 @@ Animator:
   m_GameObject: {fileID: 5522589709422917483}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: 791ccd9e14058504981fb41d4039bd38, type: 2}
-  m_Controller: {fileID: 9100000, guid: af984349c915f6148b2cca3757226c2a, type: 2}
+  m_Controller: {fileID: 9100000, guid: 7aed19d36aa714549a16defb221c6b5d, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -27192,6 +27193,7 @@ MonoBehaviour:
   veiwSoundIndicator: 0
   highlightEffect: {fileID: 0}
   agent: {fileID: 0}
+  enemyBox: {fileID: 0}
 --- !u!143 &1781178364322216945
 CharacterController:
   m_ObjectHideFlags: 0
@@ -27585,6 +27587,25 @@ MonoBehaviour:
     StartPositionRotation: {fileID: 5515268961397639598}
     DestroyAfter: 4
     UseLocalPosition: 0
+--- !u!114 &4293529512262398586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5522589709422917483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbf9db670c1df4bb2843b82560ce5409, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  icon: {fileID: 21300000, guid: 9abce3e87c5b94d899d1dbbdc1b9a2ff, type: 3}
+  size: {x: 10, y: 10}
+  rotateWithObject: 1
+  upAxis: {x: 0, y: 1, z: 0}
+  initialIconRotation: 0
+  clampIconInBorder: 1
+  clampDistance: 100
 --- !u!1 &5523976049685558855
 GameObject:
   m_ObjectHideFlags: 0
@@ -32540,7 +32561,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4269967195233293165}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: PlayerCameraRoot
   m_TagString: CinemachineTarget
   m_Icon: {fileID: 0}
@@ -33975,7 +33996,7 @@ GameObject:
   - component: {fileID: 4800453163013762685}
   - component: {fileID: 2845560482121760356}
   - component: {fileID: 3241814038852802901}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Image
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -35187,7 +35208,7 @@ GameObject:
   - component: {fileID: 4564846516566154049}
   - component: {fileID: 1836302497250009328}
   - component: {fileID: 1416486574649794287}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: speech
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38385,7 +38406,7 @@ GameObject:
   - component: {fileID: 4862959225277709814}
   - component: {fileID: 8017835408290590148}
   - component: {fileID: 8427032835131677586}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40291,7 +40312,7 @@ GameObject:
   - component: {fileID: 5283526995630265233}
   - component: {fileID: 4016971042765042649}
   - component: {fileID: 3628020122264566485}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: MicImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -42724,7 +42745,7 @@ GameObject:
   - component: {fileID: 5356126144013338463}
   - component: {fileID: 7734185121782204629}
   - component: {fileID: 7352865068955688883}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: Title Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}

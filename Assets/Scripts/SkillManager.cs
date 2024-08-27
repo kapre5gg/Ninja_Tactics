@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using UnityEditor.Tilemaps;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -453,6 +452,7 @@ public class SkillManager : MonoBehaviour
 
         // 목표 지점에 정확히 위치시킴
         throwObj.transform.position = _targetPos;
+        throwObj.gameObject.layer = LayerMask.NameToLayer("Item");
         // 소리 효과 호출
         SkillManager.instance.MakeSound(_targetPos, _soundRange);
 

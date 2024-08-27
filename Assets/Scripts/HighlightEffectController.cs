@@ -6,17 +6,17 @@ public class HighlightEffectController : MonoBehaviour
 {
     [SerializeField] private GameObject[] parentsObject;
     [SerializeField] private Image iconImg;
-    private bool isActivated;
+    private bool isActivated = false;
 
     private void Update()
     {
         if (isActivated)
         {
-            iconImg.sprite = Resources.Load<Sprite>($"activeHighlight");
+            iconImg.sprite = Resources.Load<Sprite>($"inactiveHighlight");
         }
         else
         {
-            iconImg.sprite = Resources.Load<Sprite>($"inactiveHighlight");
+            iconImg.sprite = Resources.Load<Sprite>($"activeHighlight");
         }
     }
 

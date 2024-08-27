@@ -1,7 +1,6 @@
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +21,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     public int localPlayerNum = -1;
     public float multiHp = 1;
     public int selectType = -1;
+    public CameraController myCamera;
 
     [Header("server")]
     [SyncVar]
@@ -29,6 +29,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     public List<int> playerSelects = new List<int>(5);
     public List<string> playerNames = new List<string>(5);
     public List<int> playerHPs = new List<int>(5) { -1, -1, -1, -1, -1 };
+    public List<NinjaController> playerNinjaCons = new List<NinjaController>(5);
     public bool ISGamePlay = false;
     public bool MissionClear = false;
 
@@ -77,18 +78,6 @@ public class NinjaTacticsManager : NetworkBehaviour
         EndingPanel.SetActive(false);
     }
 
-    [Command(requiresAuthority = false)]
-    public void CmdGameStart()
-    {
-        RpcGameStart();
-    }
-    [ClientRpc]
-    public void RpcGameStart()
-    {
-        startPanel.SetActive(false);
-        ISGamePlay = true;
-        SetTimer();
-    }
 
 
     public void OnClickSelectNinja(int type)
@@ -113,15 +102,25 @@ public class NinjaTacticsManager : NetworkBehaviour
 
 
     #region Cmd+Rpc
-    
 
+    [Command(requiresAuthority = false)]
+    public void CmdGameStart()
+    {
+        RpcGameStart();
+    }
+    [ClientRpc]
+    public void RpcGameStart()
+    {
+        startPanel.SetActive(false);
+        ISGamePlay = true;
+        SetTimer();
+    }
 
     [Command(requiresAuthority = false)]
     private void CmdUpdateSelects(int _type)
     {
         RpcUpdateSelects(_type);
     }
-
     [ClientRpc]
     private void RpcUpdateSelects(int _type)
     {
@@ -133,7 +132,6 @@ public class NinjaTacticsManager : NetworkBehaviour
     {
         RpcUpdateName(_name);
     }
-
     [ClientRpc]
     private void RpcUpdateName(string _name)
     {
@@ -146,7 +144,6 @@ public class NinjaTacticsManager : NetworkBehaviour
     {
         RpcMakeProfile();
     }
-
     [ClientRpc]
     private void RpcMakeProfile()
     {
@@ -164,18 +161,31 @@ public class NinjaTacticsManager : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    public void CmdUpdateHP(int _playerNum,int _hp)
+    public void CmdUpdateHP(int _playerNum, int _hp)
     {
         playerHPs[_playerNum] = _hp;
         RpcUpdateHP(_playerNum, _hp);
     }
-
     [ClientRpc]
     private void RpcUpdateHP(int _playerNum, int _hp)
     {
         playerHPs[_playerNum] = _hp;
         profiles[_playerNum].GetComponent<NinjaProfile>().UpdateHp(playerSelects[_playerNum], playerHPs[_playerNum]);
     }
+
+
+    [Command(requiresAuthority = false)]
+    public void CmdAddNinjaCon(int _num, NinjaController _con)
+    {
+        playerNinjaCons.Add(_con);
+        RpcAddNinjaCon(playerNinjaCons);
+    }
+    [ClientRpc]
+    public void RpcAddNinjaCon(List<NinjaController> input)
+    {
+        playerNinjaCons = input;
+    }
+
     #endregion
 
     [Command(requiresAuthority = false)]
@@ -195,7 +205,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     }
 
     #region TimerSys
-    
+
     public void SetTimer()
     {
         PlayTime = 0;
@@ -232,7 +242,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     {
         print("´©°¡ Á×À½");
         _bol = true;
-        foreach(int p in playerHPs)
+        foreach (int p in playerHPs)
         {
             if (p > 0)
                 _bol = false;

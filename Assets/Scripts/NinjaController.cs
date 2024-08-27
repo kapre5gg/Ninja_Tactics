@@ -1,16 +1,14 @@
 using HighlightPlus;
 using Mirror;
-using Mysqlx.Crud;
 using StarterAssets;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
-
+[Serializable]
 public class NinjaController : NetworkBehaviour
 {
     [Header("ninja info")]
@@ -51,6 +49,7 @@ public class NinjaController : NetworkBehaviour
 
     private Transform carriedCorpse = null;  // 현재 들고 있는 시체
     private bool isCarryingCorpse = false;
+    [SerializeField] private Transform enemyBox;
 
     public override void OnStartLocalPlayer()
     {
@@ -102,6 +101,7 @@ public class NinjaController : NetworkBehaviour
         SetNinjaInfo(ninjaType);
         skillSet = SkillManager.instance.GetSkill(ninjaType);
         CmdChangNinjaSprite(ninjaType);
+        tacticsManager.CmdAddNinjaCon(tacticsManager.localPlayerNum, this);
     }
 
     [Command]
@@ -132,11 +132,14 @@ public class NinjaController : NetworkBehaviour
             }
             if (Time.time - lastClickTime < doubleClickTimeLimit) // 더블 클릭 감지 (뛰기)
             {
-                if (!isSitting && !isCarryingCorpse)
+                ninjaSpeed = ninjaRunSpeed;
+                anim.SetBool("Running", true);
+                if (isSitting)
                 {
-                    ninjaSpeed = ninjaRunSpeed;
-                    anim.SetBool("Running", true);
+                    isSitting = false;
+                    anim.SetBool("Sitting", false);
                 }
+                if (isCarryingCorpse) { StopCarryingCorpse(); }
             }
             lastClickTime = Time.time;
 
@@ -219,12 +222,12 @@ public class NinjaController : NetworkBehaviour
     #region 스킬ASD
     private void KeyDownASD()
     {
-            if (Input.GetKeyDown(KeyCode.A))
-                ReadySkill(0);
-            else if (Input.GetKeyDown(KeyCode.S))
-                ReadySkill(1);
-            else if (Input.GetKeyDown(KeyCode.D))
-                ReadySkill(2);
+        if (Input.GetKeyDown(KeyCode.A))
+            ReadySkill(0);
+        else if (Input.GetKeyDown(KeyCode.S))
+            ReadySkill(1);
+        else if (Input.GetKeyDown(KeyCode.D))
+            ReadySkill(2);
     }
     private void ReadySkill(int skillIdx)
     {
@@ -359,9 +362,27 @@ public class NinjaController : NetworkBehaviour
             teleportLocation.Teleport(transform);
         }
     }
+    private IEnumerator CheckArrive(Transform transform)
+    {
+        while (agent.pathPending)
+        {
+            yield return null;
+        }
+
+        while (agent.remainingDistance > agent.stoppingDistance)
+        {
+            yield return null;
+        }
+
+        if (!agent.hasPath || agent.velocity.sqrMagnitude == 0f)
+        {
+            StartCarryingCorpse(transform);
+        }
+    }
+
     private void MovingCorpse()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
@@ -370,7 +391,8 @@ public class NinjaController : NetworkBehaviour
                 {
                     if (carriedCorpse == null)  // 시체를 들고 있지 않다면
                     {
-                        StartCarryingCorpse(hit.transform);
+                        agent.SetDestination(hit.transform.position);
+                        StartCoroutine(CheckArrive(hit.transform));
                     }
                     else
                     {
@@ -378,6 +400,10 @@ public class NinjaController : NetworkBehaviour
                     }
                 }
             }
+        }
+        if (carriedCorpse != null && Input.GetKeyDown(KeyCode.Space))
+        {
+            StopCarryingCorpse();
         }
     }
     private void StartCarryingCorpse(Transform corpse)
@@ -401,8 +427,12 @@ public class NinjaController : NetworkBehaviour
             isCarryingCorpse = false;
             anim.SetBool("Carrying", false);  // 애니메이션 상태 변경
             Enemy enemy = carriedCorpse.GetComponent<Enemy>();
-            if (enemy != null) { enemy.anim.SetBool("Carried", false); }
-            carriedCorpse.parent = null;  // 부모 관계 해제
+            if (enemy != null)
+            {
+                enemy.anim.SetBool("Carried", false);
+                enemy.fieldOfView.isViewMeshVisible = false;
+            }
+            carriedCorpse.parent = enemyBox;
             carriedCorpse.position = transform.position;  // 플레이어 위치에 내려놓기
             carriedCorpse = null;  // 들고 있는 시체 초기화
         }

@@ -23,7 +23,7 @@ public class Enemy : MonoBehaviour
     [Header("Components")]
     protected NavMeshAgent agent; // 내비메쉬
     [SerializeField] public Animator anim; // 애니메이션
-    [SerializeField] protected FieldOfView fieldOfView; // 시야
+    [SerializeField] public FieldOfView fieldOfView; // 시야
     [SerializeField] protected GameObject exclamationMark; // 적 발견시 머리 위에 뜨는 느낌표 오브젝트
 
     [Header("Canvas")]
@@ -91,6 +91,16 @@ public class Enemy : MonoBehaviour
     #region Update
     private void Update()
     {
+        float speed = agent.velocity.magnitude;
+
+        // 작은 속도 변화를 무시하도록 임계값 설정
+        if (speed < 0.1f)
+        {
+            speed = 0f;  // Idle 상태로 강제 전환
+        }
+
+        anim.SetFloat("moveSpeed", speed);
+
         if (!isDead)
         {
             switch (enemyState)
@@ -117,9 +127,18 @@ public class Enemy : MonoBehaviour
     {
         if (fieldOfView.visibleTargets.Count > 0) // 시야에 감지된 타겟이 하나 이상 있을 경우
         {
-            Debug.Log("탐색 전환");
-            enemyState = EnemyState.Search; // 탐색 상태로 전환
-
+            foreach (Transform target in fieldOfView.visibleTargets) // 모든 감지된 타겟을 검사
+            {
+                if (target.CompareTag("Player")) // 타겟이 "Player" 태그를 가지고 있는지 확인
+                {
+                    enemyState = EnemyState.Search; // 탐색 상태로 전환
+                    currTarget = target; // 해당 타겟을 현재 타겟으로 설정
+                    lastKnownPosition = currTarget.position; // 타겟의 현재 위치를 저장
+                    agent.SetDestination(currTarget.position); // 타겟 방향으로 이동
+                    break;
+                }
+            }
+            
             if (!exclamationMark)
                 exclamationMark.SetActive(true); // 적 발견 마크 활성화
 
@@ -184,7 +203,15 @@ public class Enemy : MonoBehaviour
     #region 순찰 상태
     protected virtual void PatrolState()
     {
-        agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
+        // 현재 경로가 완료되지 않았거나 장애물로 인해 이동이 멈췄을 경우 경로를 재설정
+        if (agent.pathStatus == NavMeshPathStatus.PathComplete && !agent.pathPending && agent.remainingDistance < 0.5f)
+        {
+            if (agent.hasPath)
+            {
+                agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
+            }
+        }
+        agent.SetDestination(waypoints[currentWaypointIndex].position); 
 
         float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
         anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
@@ -233,13 +260,20 @@ public class Enemy : MonoBehaviour
 
         if (fieldOfView.visibleTargets.Count > 0) // 시야에 감지된 타겟이 하나 이상 있을 경우
         {
-            //isTargeting = true;
-            currTarget = fieldOfView.visibleTargets[0]; // 첫번째로 감지된 타겟을 타겟으로 설정
-            lastKnownPosition = currTarget.position; // 타겟의 현재 위치를 저장
-            agent.SetDestination(currTarget.position); // 타겟 방향으로 이동
+            foreach (Transform target in fieldOfView.visibleTargets) // 모든 감지된 타겟을 검사
+            {
+                if (target.CompareTag("Player")) // 타겟이 "Player" 태그를 가지고 있는지 확인
+                {
+                    currTarget = target; // 해당 타겟을 현재 타겟으로 설정
+                    lastKnownPosition = currTarget.position; // 타겟의 현재 위치를 저장
+                    agent.SetDestination(currTarget.position); // 타겟 방향으로 이동
+                    break;
+                }
+            }
         }
         else
         {
+            currTarget = null;
             enemyState = EnemyState.Patrol;
         }
 
@@ -344,8 +378,11 @@ public class Enemy : MonoBehaviour
         }
 
         yield return new WaitForSeconds(attackInterval);
-        NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
-        targetNinja.OnDamage();
+        //NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
+        //if (targetNinja != null)
+        //{
+        //    targetNinja.OnDamage();
+        //}
         isAttacking = false; // 공격 중 상태 해제
         agent.isStopped = false; // 에이전트 이동 재개
     }
