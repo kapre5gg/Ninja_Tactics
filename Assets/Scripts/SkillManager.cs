@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,7 +14,6 @@ public abstract class Skill
     protected float lastUsedTime;
     protected NinjaController caster;
     protected Transform casterTr;
-
     public Skill(float skillRange, float soundRange, float skillCool)
     {
         this.skillRange = skillRange;
@@ -133,13 +133,15 @@ public class Shurican : Skill
 
     public override void UseSkill()
     {
-        if(SkillManager.instance.isUnavailable) return;
+        if(SkillManager.instance.isUnavailable) 
+            return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("ThrowShuriken");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
         SkillManager.instance.isUnavailable = true;
+        SkillManager.instance.LostSomething(1, false);
     }
 
     public override void ApproachUseSkill()
@@ -168,37 +170,36 @@ public class ThrowSomething : Skill
     {
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Throw");
-        SkillManager.instance.SkillCool(2);
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
+        SkillManager.instance.SkillCool(2);
         caster.NotUseSkill();
     }
     private IEnumerator WaitforAct()
     {
         yield return new WaitForSeconds(0.6f);
-        
-            switch (type)
-            {
-                case 0:
-                    Debug.Log("돌던짐");
-                    //날라가는 함수
-                    SkillManager.instance.ThrowSomething("Stone", casterTr.position, caster.nonTargetPos, soundRange, type);
-                    break;
-                case 1:
-                    Debug.Log("모래던짐");
-                    //날라가는 함수
-                    SkillManager.instance.ThrowSomething("Sneeze Powder", casterTr.position, caster.nonTargetPos, soundRange, type);
-                    break;
-                case 2:
-                    if (SkillManager.instance.isUnavailable)
-                        yield break;
-                    Debug.Log("술던짐");
-                    //날라가는 함수
-                    SkillManager.instance.ThrowSomething("Sakke", casterTr.position, caster.nonTargetPos, soundRange, type);
-                    skillCool = 999999f;
-                    break;
-                default:
-                    break;
-            }
+        switch (type)
+        {
+            case 0:
+                Debug.Log("돌던짐");
+                //날라가는 함수
+                SkillManager.instance.ThrowSomething("Stone", casterTr.position, caster.nonTargetPos, soundRange, type);
+                break;
+            case 1:
+                Debug.Log("모래던짐");
+                //날라가는 함수
+                SkillManager.instance.ThrowSomething("Sneeze Powder", casterTr.position, caster.nonTargetPos, soundRange, type);
+                break;
+            case 2:
+                if (SkillManager.instance.isUnavailable)
+                    yield break;
+                Debug.Log("술던짐");
+                //날라가는 함수
+                SkillManager.instance.ThrowSomething("Sakke", casterTr.position, caster.nonTargetPos, soundRange, type);
+                SkillManager.instance.LostSomething(2, false);
+                break;
+            default:
+                break;
+        }
     }
 
     public override void ApproachUseSkill()
@@ -257,7 +258,7 @@ public class TalktoEnemy : Skill
     }
     public override void ApproachUseSkill()
     {
-        if (IsOffCooldown() && IsTargetSkill() && SkillManager.instance.isUnavailable)
+        if (IsOffCooldown() && IsTargetSkill() && !SkillManager.instance.isUnavailable)
             casterTr.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
         else
             Debug.Log("스킬 쿨 안돌아옴");
@@ -267,6 +268,12 @@ public class TalktoEnemy : Skill
 public class SkillManager : MonoBehaviour
 {
     public static SkillManager instance;
+    public Dictionary<string, Action> itemActions = new Dictionary<string, Action>
+    {
+        { "Shuriken", () => SkillManager.instance.HasShuriken() },
+        { "Kimono", () => SkillManager.instance.HasKimono() },
+        { "Sakke", () => SkillManager.instance.HasSakke() }
+    };
     private void Awake()
     {
         if (instance == null)
@@ -282,6 +289,7 @@ public class SkillManager : MonoBehaviour
     //public Terrain terrain;
     public Skill[] skillSet = new Skill[3];
     public bool isUnavailable = false;
+    public Color unableColor = new Color(100 / 255f, 100 / 255f, 100 / 255f, 1);
     public Skill[] GetSkill(int _type)
     {
         ninjaCon = DBManager.instance.myCon;
@@ -302,7 +310,7 @@ public class SkillManager : MonoBehaviour
             case 2:
                 skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
                 skillSet[1] = new SlashBlade(2f, 3f, 18f);
-                skillSet[2] = new ThrowSomething(6f, 0f, 999999f, 2);
+                skillSet[2] = new ThrowSomething(6f, 0f, 0f, 2);
                 SKillIconSet(2);
                 break;
             default:
@@ -318,6 +326,8 @@ public class SkillManager : MonoBehaviour
         {
             skillIcons[i].sprite = Resources.Load<Sprite>($"Skill_Icon{_type}_{i}");
             skillIcons[i].fillAmount = 1;
+            if (_type == 1 && i == 1)
+                isUnavailable = true;
         }
     }
 
@@ -334,6 +344,13 @@ public class SkillManager : MonoBehaviour
             yield return null;
         }
     }
+    public void LostSomething(int _skillidx, bool _bool)
+    {
+        if (!_bool)
+            skillIcons[_skillidx].color = unableColor;
+        else
+            skillIcons[_skillidx].color = Color.white;
+    }
 
     public void MakeSound(Vector3 _pos, float _soundRange)
     {
@@ -344,7 +361,7 @@ public class SkillManager : MonoBehaviour
             Enemy enemy = coll.GetComponent<Enemy>();
             if (enemy != null)
             {
-                //enemyAI.Alarm();
+                //enemy.enemyState = EnemyState.Stun;
             }
         }
 
@@ -370,16 +387,19 @@ public class SkillManager : MonoBehaviour
         isUnavailable = false;
         skillIcons[2].fillAmount = 1;
         skillSet[2].skillCool = 0;
+        LostSomething(2, true);
     }
     public void HasKimono()
     {
         isUnavailable = false;
-        skillIcons[2].fillAmount = 1;
+        skillIcons[1].sprite = Resources.Load<Sprite>($"Skill_Icon1_3");
+        skillIcons[1].fillAmount = 1;
     }
     public void HasShuriken()
     {
         isUnavailable = false;
-        skillIcons[2].fillAmount = 1;
+        skillIcons[1].fillAmount = 1;
+        LostSomething(1, true);
     }
     public void ThrowShuriken(Vector3 _pos, GameObject _target, float _soundRange)
     {

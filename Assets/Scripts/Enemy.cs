@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.AI;
 
 public enum EnemyType { Melee, Range }
-public enum EnemyState { Patrol, Search, Attack, Stun, Dead }
+public enum EnemyState { Patrol, Search, Attack, Stun }
 public enum StunType { None, Move, Stun, FixedView, BlockingView, RotateView };
 
 public class Enemy : MonoBehaviour
@@ -55,8 +55,9 @@ public class Enemy : MonoBehaviour
     public Transform currTarget;
     public float attackInterval = 1.5f; // 공격 간격
     public float attackRange = 5f; // 공격 범위
+    public float searchRange = 10f; // 탐색 범위
 
-    
+
     //RangeType을 위한 변수들
     [SerializeField] protected Transform firePos; // 총알이 나갈 위치
     [SerializeField] protected GameObject bulletPrefab; // 총알 프리팹
@@ -81,26 +82,23 @@ public class Enemy : MonoBehaviour
 
         enemyState = EnemyState.Patrol; //EnemyState 초기화(초기 설정 : Patrol)
 
-        if(fieldOfView != null)
+        if (fieldOfView != null)
         {
             initialViewRadius = fieldOfView.viewRadius; // 시야 설정 초기화
         }
     }
     #endregion
-
+    void OnDrawGizmos()
+    {
+        if (agent != null && agent.hasPath)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(transform.position, agent.steeringTarget);
+        }
+    }
     #region Update
     private void Update()
     {
-        float speed = agent.velocity.magnitude;
-
-        // 작은 속도 변화를 무시하도록 임계값 설정
-        if (speed < 0.1f)
-        {
-            speed = 0f;  // Idle 상태로 강제 전환
-        }
-
-        anim.SetFloat("moveSpeed", speed);
-
         if (!isDead)
         {
             switch (enemyState)
@@ -127,20 +125,23 @@ public class Enemy : MonoBehaviour
     {
         if (fieldOfView.visibleTargets.Count > 0) // 시야에 감지된 타겟이 하나 이상 있을 경우
         {
-            foreach (Transform target in fieldOfView.visibleTargets) // 모든 감지된 타겟을 검사
+            foreach (var target in fieldOfView.visibleTargets)
             {
-                if (target.CompareTag("Player")) // 타겟이 "Player" 태그를 가지고 있는지 확인
+                if (target.CompareTag("Player")) // 타겟의 태그가 "Player"인 경우
                 {
-                    enemyState = EnemyState.Search; // 탐색 상태로 전환
-                    currTarget = target; // 해당 타겟을 현재 타겟으로 설정
-                    lastKnownPosition = currTarget.position; // 타겟의 현재 위치를 저장
-                    agent.SetDestination(currTarget.position); // 타겟 방향으로 이동
-                    break;
+                    currTarget = target; // 타겟을 현재 타겟으로 설정
+                    break; // 첫 번째 플레이어를 찾으면 루프를 종료
                 }
             }
-            
-            if (!exclamationMark)
+        }
+        if (currTarget != null)
+        {
+            enemyState = EnemyState.Search; // 탐색 상태로 전환
+
+            if (exclamationMark != null && !exclamationMark.activeSelf)
+            {
                 exclamationMark.SetActive(true); // 적 발견 마크 활성화
+            }
 
             if (!fieldOfView.isViewMeshVisible) // 시야 범위 메쉬가 비활성화되어있다면
             {
@@ -148,8 +149,10 @@ public class Enemy : MonoBehaviour
             }
         }
     }
+
     private void ChangeAttackState()
     {
+        agent.isStopped = false;
         // 공격 범위 내의 플레이어 감지
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange); // 본인 위치에서 attackRange 범위만큼의 원형 범위 안에 존재하는 모든 콜라이더 hitColliders에 저장
         isRange = false;
@@ -203,30 +206,56 @@ public class Enemy : MonoBehaviour
     #region 순찰 상태
     protected virtual void PatrolState()
     {
-        // 현재 경로가 완료되지 않았거나 장애물로 인해 이동이 멈췄을 경우 경로를 재설정
-        if (agent.pathStatus == NavMeshPathStatus.PathComplete && !agent.pathPending && agent.remainingDistance < 0.5f)
+        if(waypoints != null && waypoints.Length > 0)
         {
-            if (agent.hasPath)
+            agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
+
+            float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
+            anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
+
+            if (!agent.pathPending && agent.remainingDistance < 0.5f && !isWaiting) //  에이전트가 목표 지점으로 가는 경로를 계산 중이 아니고 / 에이전트가 현재 목표 지점에 거의 도달하고 / 대기 중이 아니면
             {
-                agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
+                StartCoroutine(WaitAtWaypoint()); //WaitAtWaypoint() 실행 (웨이포인트 지점에서 일정 시간 대기)
             }
         }
-        agent.SetDestination(waypoints[currentWaypointIndex].position); 
-
-        float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
-        anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
-
-        if (!agent.pathPending && agent.remainingDistance < 0.5f && !isWaiting) //  에이전트가 목표 지점으로 가는 경로를 계산 중이 아니고 / 에이전트가 현재 목표 지점에 거의 도달하고 / 대기 중이 아니면
+        else
         {
-            StartCoroutine(WaitAtWaypoint()); //WaitAtWaypoint() 실행 (웨이포인트 지점에서 일정 시간 대기)
+            agent.isStopped = true;
+            anim.SetFloat("MoveSpeed", 0);
+            RotateSearch();
         }
-
+        
         if (!hasPlayedDialogue) // 대사 출력 중이 아니면
         {
             StartCoroutine(SetDialogue("Patrol")); // 순찰 대사 출력
         }
+        if (fieldOfView.visibleTargets.Count > 0) // 시야에 감지된 타겟이 하나 이상 있을 경우
+        {
+            foreach (var target in fieldOfView.visibleTargets)
+            {
+                if (target.CompareTag("Player")) // 타겟의 태그가 "Player"인 경우
+                {
+                    currTarget = target; // 타겟을 현재 타겟으로 설정
+                    break; // 첫 번째 플레이어를 찾으면 루프를 종료
+                }
+            }
+        }
+        if (currTarget != null)
+        {
+            agent.isStopped = false;
+            enemyState = EnemyState.Search; // 탐색 상태로 전환
 
-        ChangeSearchState(); //탐색 상태 전환 함수
+            if (exclamationMark != null && !exclamationMark.activeSelf)
+            {
+                exclamationMark.SetActive(true); // 적 발견 마크 활성화
+            }
+
+            if (!fieldOfView.isViewMeshVisible) // 시야 범위 메쉬가 비활성화되어있다면
+            {
+                fieldOfView.isViewMeshVisible = true; // 시야 범위 메쉬 활성화
+            }
+        }
+        //ChangeSearchState(); //탐색 상태 전환 함수
 
         ChangeAttackState(); //공격 상태 전환 함수
     }
@@ -243,38 +272,41 @@ public class Enemy : MonoBehaviour
             currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length; // 웨이포인트 인덱스를 +1하고 나머지 연산자로 waypoints.Length를 넘어가지 않도록 설정
             agent.SetDestination(waypoints[currentWaypointIndex].position); // 에이전트의 이동 방향을 현재 인덱스의 웨이포인트로 설정
             isWaiting = false; // 대기 끝
-        }   
+        }
     }
     #endregion
 
     #region 탐색 상태
     private void SearchState()
     {
-        if (!hasPlayedDialogue) // 대사 출력 중이 아니면
-        {
-            StartCoroutine(SetDialogue("Search")); // 탐색 대사 출력
-        }
+        // 공격 범위 내의 플레이어 감지
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, searchRange);
+        isRange = false;
+        currTarget = null;
 
-        float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
-        anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
-
-        if (fieldOfView.visibleTargets.Count > 0) // 시야에 감지된 타겟이 하나 이상 있을 경우
+        foreach (var collider in hitColliders) // hitColliders의 모든 collider 순회
         {
-            foreach (Transform target in fieldOfView.visibleTargets) // 모든 감지된 타겟을 검사
+            if (collider.CompareTag("Player")) // collider의 태그가 "Player"이면
             {
-                if (target.CompareTag("Player")) // 타겟이 "Player" 태그를 가지고 있는지 확인
-                {
-                    currTarget = target; // 해당 타겟을 현재 타겟으로 설정
-                    lastKnownPosition = currTarget.position; // 타겟의 현재 위치를 저장
-                    agent.SetDestination(currTarget.position); // 타겟 방향으로 이동
-                    break;
-                }
+                isRange = true; // 공격 범위 안에 플레이어가 존재함
+                currTarget = collider.transform; // 타겟으로 설정
+                break;
             }
+        }
+        if (currTarget != null)
+        {
+            float speed = agent.velocity.magnitude; // 에이전트 스피드 설정
+            anim.SetFloat("MoveSpeed", speed); // 애니메이션 설정
+            agent.SetDestination(currTarget.transform.position);
         }
         else
         {
-            currTarget = null;
             enemyState = EnemyState.Patrol;
+        }
+
+        if (!hasPlayedDialogue) // 대사 출력 중이 아니면
+        {
+            StartCoroutine(SetDialogue("Search")); // 탐색 대사 출력
         }
 
         ChangeAttackState(); //공격 상태 전환 함수
@@ -283,13 +315,6 @@ public class Enemy : MonoBehaviour
     public void RotateSearch()
     {
         StartCoroutine(RotateSearchRoutine());
-
-        //======================
-        // 1. 회전값을 기억하고 싶어 
-        // 2. 어떤 순간에 회전 값을 기억해야 하지?
-        // 3. 각도를 알고 싶은데, rotationAngle 값을 저장하면된다.
-        // 4. 어떤 순간에 rotationAngle 값을 저장하고, 필요할때 호출
-        //======================
     }
 
     private IEnumerator RotateSearchRoutine()
@@ -297,22 +322,61 @@ public class Enemy : MonoBehaviour
         // 현재 회전값 저장
         Quaternion originalRotation = fieldOfView.transform.localRotation;
 
-        float rotationSpeed = 90f;
-        float maxRotationAngle = 90f;
+        float rotationSpeed = 90f;       // 초당 회전 속도
+        float maxRotationAngle = 45f;    // 한 번에 회전할 최대 각도
+        float waitTime = 2f;             // 회전 후 대기 시간
+        float rotationInterval = 1f;     // 회전 갱신 주기
 
-        // 일정 시간 동안 회전
-        float rotationAngle = Mathf.PingPong(Time.time * rotationSpeed, maxRotationAngle * 2) - maxRotationAngle;
-        fieldOfView.transform.localRotation = Quaternion.Euler(0, rotationAngle, 0);
+        while (true) // 코루틴을 지속적으로 실행
+        {
+            // 일정 시간 동안 회전
+            float elapsedTime = 0f;
+            while (elapsedTime < rotationInterval)
+            {
+                // PingPong 함수를 사용하여 -maxRotationAngle에서 +maxRotationAngle까지 각도 변경
+                float rotationAngle = Mathf.PingPong(Time.time * rotationSpeed, maxRotationAngle * 2) - maxRotationAngle;
+                fieldOfView.transform.localRotation = Quaternion.Euler(0, rotationAngle, 0);
 
-        // 5초간 대기 (회전 유지)
-        yield return new WaitForSeconds(5f);
+                elapsedTime += Time.deltaTime; // 시간 업데이트
+                yield return null; // 다음 프레임까지 대기
+            }
 
-        // 원래 회전값으로 돌아오기
-        fieldOfView.transform.localRotation = originalRotation;
+            // 각도 저장
+            Quaternion currentRotation = fieldOfView.transform.localRotation;
+
+            // 2초간 대기
+            yield return new WaitForSeconds(waitTime);
+
+            // 원래 회전값으로 돌아오기
+            fieldOfView.transform.localRotation = originalRotation;
+
+            // 2초간 대기
+            yield return new WaitForSeconds(waitTime);
+
+            // 다시 이전에 저장한 회전값으로 복원
+            fieldOfView.transform.localRotation = currentRotation;
+        }
     }
+
+
     #region 공격 상태
     protected virtual void AttackState()
     {
+        // 공격 범위 내의 플레이어 감지
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, attackRange);
+        isRange = false;
+        atkTarget = null;
+
+        foreach (var collider in hitColliders) // hitColliders의 모든 collider 순회
+        {
+            if (collider.CompareTag("Player")) // collider의 태그가 "Player"이면
+            {
+                isRange = true; // 공격 범위 안에 플레이어가 존재함
+                atkTarget = collider.transform; // 타겟으로 설정
+                break;
+            }
+        }
+
         if (!hasPlayedDialogue) // 대사 출력 중이 아니면
         {
             StartCoroutine(SetDialogue("Attack")); // 공격 대사 출력
@@ -327,10 +391,12 @@ public class Enemy : MonoBehaviour
             StartCoroutine(AttackRoutine()); // 공격 코루틴 실행
 
         }
-
-        ChangePatrolState(); // 순찰 상태 전환
+        if (atkTarget == null)
+        {
+            enemyState = EnemyState.Search;
+        }
     }
-    
+
     private IEnumerator RotateDirection() // 플레이어의 방향으로 회전
     {
         if (atkTarget != null)
@@ -379,10 +445,7 @@ public class Enemy : MonoBehaviour
 
         yield return new WaitForSeconds(attackInterval);
         //NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
-        //if (targetNinja != null)
-        //{
-        //    targetNinja.OnDamage();
-        //}
+        //targetNinja.OnDamage();
         isAttacking = false; // 공격 중 상태 해제
         agent.isStopped = false; // 에이전트 이동 재개
     }
@@ -394,7 +457,7 @@ public class Enemy : MonoBehaviour
 
     public void ChangeStunState(StunType _stunType, float _stunTime, Vector3 _targetPosition = default) // 스턴 상태 전환
     {
-        if(enemyState == EnemyState.Stun)
+        if (enemyState == EnemyState.Stun)
         {
             curState = EnemyState.Patrol;
         }
@@ -449,7 +512,7 @@ public class Enemy : MonoBehaviour
             if (effect != null) effect.gameObject.SetActive(false);
         }
         agent.isStopped = false;
-        
+
         stunType = StunType.None;
         enemyState = curState; // 저장된 직전 상태로 돌아감
     }
@@ -492,7 +555,7 @@ public class Enemy : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
     }
 
-    
+
     private void RotateView(Vector3 targetPostion) // 범위, 시야 돌리기 - 돌던지기
     {
         stunEffects[4].gameObject.SetActive(true);
@@ -558,54 +621,54 @@ public class Enemy : MonoBehaviour
     #endregion
 
     #region 대사 출력
-        public virtual IEnumerator SetDialogue(string dialogueType)
+    public virtual IEnumerator SetDialogue(string dialogueType)
+    {
+        switch (dialogueType)
         {
-            switch(dialogueType)
-            {
-                case "Patrol":
-                    // 랜덤으로 대사 선택
-                    if (patrolDialogues.Length > 0)
-                    {
-                        int randomIndex = Random.Range(0, patrolDialogues.Length);
-                        dialogueText.text = patrolDialogues[randomIndex];
-                    }
-                    else
-                    {
-                        dialogueText.text = "적이 침투하지 않는지 잘 감시하자!"; // 기본 대사
-                    }
-                    break;
-                case "Search":
-                    // 랜덤으로 대사 선택
-                    if (searchDialogues.Length > 0)
-                    {
-                        int randomIndex = Random.Range(0, searchDialogues.Length);
-                        dialogueText.text = searchDialogues[randomIndex];
-                    }
-                    else
-                    {
-                        dialogueText.text = "침입자다!!"; // 기본 대사
-                    }
-                    break;
-                case "Attack":
-                    // 랜덤으로 대사 선택
-                    if (attackDialogues.Length > 0)
-                    {
-                        int randomIndex = Random.Range(0, attackDialogues.Length);
-                        dialogueText.text = attackDialogues[randomIndex];
-                    }
-                    else
-                    {
-                        dialogueText.text = "죽어랏! 켈켈"; // 기본 대사
-                    }
-                    break;
-            }
-        
-            hasPlayedDialogue = true; // 대사가 설정되었음을 기록
-            yield return new WaitForSeconds(3f);
-            hasPlayedDialogue = false;
+            case "Patrol":
+                // 랜덤으로 대사 선택
+                if (patrolDialogues.Length > 0)
+                {
+                    int randomIndex = Random.Range(0, patrolDialogues.Length);
+                    dialogueText.text = patrolDialogues[randomIndex];
+                }
+                else
+                {
+                    dialogueText.text = "적이 침투하지 않는지 잘 감시하자!"; // 기본 대사
+                }
+                break;
+            case "Search":
+                // 랜덤으로 대사 선택
+                if (searchDialogues.Length > 0)
+                {
+                    int randomIndex = Random.Range(0, searchDialogues.Length);
+                    dialogueText.text = searchDialogues[randomIndex];
+                }
+                else
+                {
+                    dialogueText.text = "침입자다!!"; // 기본 대사
+                }
+                break;
+            case "Attack":
+                // 랜덤으로 대사 선택
+                if (attackDialogues.Length > 0)
+                {
+                    int randomIndex = Random.Range(0, attackDialogues.Length);
+                    dialogueText.text = attackDialogues[randomIndex];
+                }
+                else
+                {
+                    dialogueText.text = "죽어랏! 켈켈"; // 기본 대사
+                }
+                break;
         }
-        #endregion
-    
+
+        hasPlayedDialogue = true; // 대사가 설정되었음을 기록
+        yield return new WaitForSeconds(3f);
+        hasPlayedDialogue = false;
+    }
+    #endregion
+
     #region UI
     private void OnMouseDown() // 마우스 클릭했을 때 시야각 표시
     {
@@ -622,11 +685,11 @@ public class Enemy : MonoBehaviour
         infoCanvas.gameObject.SetActive(false);
     }
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red; // 공격 범위 기즈모 색상 설정
-        Gizmos.DrawWireSphere(transform.position, attackRange); // 공격 범위 시각화
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red; // 공격 범위 기즈모 색상 설정
+    //    Gizmos.DrawWireSphere(transform.position, attackRange); // 공격 범위 시각화
+    //}
 
     private void UpdateUIPosition()  //UI 위치 업데이트
     {
@@ -674,5 +737,4 @@ public class Enemy : MonoBehaviour
         }
     }
     #endregion
-    
 }

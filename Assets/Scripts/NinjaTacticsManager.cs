@@ -256,7 +256,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         }
     }
     [ClientRpc]
-    private void RpcDisplayEnding()
+    public void RpcDisplayEnding()
     {
         EndingPanel.SetActive(true);
         lastTime.text = FormatTime(PlayTime);
@@ -267,7 +267,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         if (MissionClear)
             endingText.text = "목표를 없애고 평화를 얻었다.";
         else
-            endingText.text = "모두 죽으셨군요.";
+            endingText.text = "모두 죽으셨군요. 쯧.";
     }
 
     #endregion

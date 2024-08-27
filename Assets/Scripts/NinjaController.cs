@@ -232,6 +232,8 @@ public class NinjaController : NetworkBehaviour
     private void ReadySkill(int skillIdx)
     {
         selectedSkill = skillSet[skillIdx];
+        if (!selectedSkill.IsOffCooldown() || SkillManager.instance.isUnavailable)
+            return;
         skillIndicatorPrefab.transform.localScale = Vector3.one * skillSet[skillIdx].skillRange;
         skillIndicatorPrefab.SetActive(true);
         ViewSoundRange(true, skillSet[skillIdx].soundRange);
@@ -440,27 +442,38 @@ public class NinjaController : NetworkBehaviour
 
     private void PickUpItem()
     {
-        Dictionary<string, Action> itemActions = new Dictionary<string, Action>
-        {
-            { "Shuriken", () => SkillManager.instance.HasShuriken() },
-            { "Kimono", () => SkillManager.instance.HasKimono() },
-            { "Sakke", () => SkillManager.instance.HasSakke() }
-        };
-
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 1f);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, 0.7f);
 
         foreach (var collider in hitColliders)
         {
             if (collider.gameObject.layer == LayerMask.NameToLayer("Item"))
             {
                 string itemTag = collider.tag;
-
-                if (itemActions.TryGetValue(itemTag, out Action itemAction))
+                bool check = false;
+                switch (ninjaType)
+                {
+                    case 0:
+                        if (itemTag == "Shuriken")
+                            check = true;
+                        break;
+                    case 1:
+                        if (itemTag == "Kimono")
+                            check = true;
+                        break;
+                    case 2:
+                        if (itemTag == "Sakke")
+                            check = true;
+                        break;
+                }
+                if (!check)
+                    break;
+                if (SkillManager.instance.itemActions.TryGetValue(itemTag, out Action itemAction))
                 {
                     Debug.Log($"{itemTag} È¹µæ");
                     itemAction.Invoke();
                     collider.gameObject.layer = 0;
                     Destroy(collider.gameObject);
+                    SkillManager.instance.skillIcons[1].color = Color.white;
                     break;
                 }
             }
