@@ -133,14 +133,14 @@ public class Shurican : Skill
 
     public override void UseSkill()
     {
-        if(SkillManager.instance.isUnavailable) 
+        if(SkillManager.instance.lostShuriken) 
             return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("ThrowShuriken");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
-        SkillManager.instance.isUnavailable = true;
+        SkillManager.instance.lostShuriken = true;
         SkillManager.instance.LostSomething(1, false);
     }
 
@@ -168,11 +168,18 @@ public class ThrowSomething : Skill
 
     public override void UseSkill()
     {
+        if (type == 2 && SkillManager.instance.lostSakke)
+            return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Throw");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(2);
         caster.NotUseSkill();
+        if (type == 2)
+        {
+            SkillManager.instance.lostSakke = true;
+            SkillManager.instance.LostSomething(2, false);
+        }
     }
     private IEnumerator WaitforAct()
     {
@@ -190,12 +197,9 @@ public class ThrowSomething : Skill
                 SkillManager.instance.ThrowSomething("Sneeze Powder", casterTr.position, caster.nonTargetPos, soundRange, type);
                 break;
             case 2:
-                if (SkillManager.instance.isUnavailable)
-                    yield break;
                 Debug.Log("술던짐");
                 //날라가는 함수
                 SkillManager.instance.ThrowSomething("Sakke", casterTr.position, caster.nonTargetPos, soundRange, type);
-                SkillManager.instance.LostSomething(2, false);
                 break;
             default:
                 break;
@@ -221,6 +225,13 @@ public class SlashBlade : Skill
     {
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Slash");
+        caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
+        SkillManager.instance.SkillCool(1);
+        caster.NotUseSkill();
+    }
+    private IEnumerator WaitforAct()
+    {
+        yield return new WaitForSeconds(1f);
         SkillManager.instance.MakeSound(caster.nonTargetPos, soundRange);
         Collider[] colls = Physics.OverlapSphere(casterTr.position, soundRange);
         foreach (Collider coll in colls)
@@ -231,8 +242,6 @@ public class SlashBlade : Skill
                 enemyAI.Die();
             }
         }
-        SkillManager.instance.SkillCool(1);
-        caster.NotUseSkill();
     }
     public override void ApproachUseSkill()
     {
@@ -253,12 +262,13 @@ public class TalktoEnemy : Skill
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Idle");
         //talk
+        caster.target.GetComponent<Enemy>().ChangeStunState(StunType.FixedView, 5f);
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
     }
     public override void ApproachUseSkill()
     {
-        if (IsOffCooldown() && IsTargetSkill() && !SkillManager.instance.isUnavailable)
+        if (IsOffCooldown() && IsTargetSkill() && !SkillManager.instance.lostKimono)
             casterTr.GetComponent<MonoBehaviour>().StartCoroutine(ApproachUseSkillCor());
         else
             Debug.Log("스킬 쿨 안돌아옴");
@@ -288,7 +298,9 @@ public class SkillManager : MonoBehaviour
     private NinjaController ninjaCon = null;
     //public Terrain terrain;
     public Skill[] skillSet = new Skill[3];
-    public bool isUnavailable = false;
+    public bool lostShuriken = false;
+    public bool lostKimono = false;
+    public bool lostSakke = false;
     public Color unableColor = new Color(100 / 255f, 100 / 255f, 100 / 255f, 1);
     public Skill[] GetSkill(int _type)
     {
@@ -327,7 +339,7 @@ public class SkillManager : MonoBehaviour
             skillIcons[i].sprite = Resources.Load<Sprite>($"Skill_Icon{_type}_{i}");
             skillIcons[i].fillAmount = 1;
             if (_type == 1 && i == 1)
-                isUnavailable = true;
+                lostKimono = true;
         }
     }
 
@@ -361,7 +373,7 @@ public class SkillManager : MonoBehaviour
             Enemy enemy = coll.GetComponent<Enemy>();
             if (enemy != null)
             {
-                //enemy.enemyState = EnemyState.Stun;
+                enemy.ChangeStunState(StunType.RotateView, 5f, _pos);
             }
         }
 
@@ -381,26 +393,27 @@ public class SkillManager : MonoBehaviour
         sound.transform.localScale = Vector3.one * _soundRange;
         Destroy(sound, 1f);
     }
-
+    
+    public void HasShuriken()
+    {
+        lostShuriken = false;
+        skillIcons[1].fillAmount = 1;
+        LostSomething(1, true);
+    }
+    public void HasKimono()
+    {
+        lostKimono = false;
+        skillIcons[1].sprite = Resources.Load<Sprite>($"Skill_Icon1_3");
+        skillIcons[1].fillAmount = 1;
+    }
     public void HasSakke()
     {
-        isUnavailable = false;
+        lostSakke = false;
         skillIcons[2].fillAmount = 1;
         skillSet[2].skillCool = 0;
         LostSomething(2, true);
     }
-    public void HasKimono()
-    {
-        isUnavailable = false;
-        skillIcons[1].sprite = Resources.Load<Sprite>($"Skill_Icon1_3");
-        skillIcons[1].fillAmount = 1;
-    }
-    public void HasShuriken()
-    {
-        isUnavailable = false;
-        skillIcons[1].fillAmount = 1;
-        LostSomething(1, true);
-    }
+
     public void ThrowShuriken(Vector3 _pos, GameObject _target, float _soundRange)
     {
         // Shuriken prefab을 해당 위치에 생성
@@ -475,6 +488,7 @@ public class SkillManager : MonoBehaviour
         throwObj.gameObject.layer = LayerMask.NameToLayer("Item");
         // 소리 효과 호출
         SkillManager.instance.MakeSound(_targetPos, _soundRange);
+        if(type != 2) Destroy(throwObj.gameObject);
 
         // 목표 지점에서 주변의 적을 감지하고 처리
         Collider[] colliders = Physics.OverlapSphere(_targetPos, _soundRange);

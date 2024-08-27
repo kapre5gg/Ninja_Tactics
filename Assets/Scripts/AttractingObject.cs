@@ -9,13 +9,19 @@ public class AttractingObject : MonoBehaviour
 {
     [SerializeField] private ObjectType type;
     [SerializeField] private int targetRange;
-    private bool enemyAttracted = false;
+    private bool alreadyAttracted = false;
     [SerializeField] private Animator anim;
     [SerializeField] private NavMeshAgent agent;
     [SerializeField] private ParticleSystem soundEffect;
     [SerializeField] private float stunTime;
+    private MeshRenderer meshRenderer;
+
     private void Start()
     {
+        if (type == ObjectType.Sakke)
+        {
+            meshRenderer = GetComponent<MeshRenderer>();
+        }
         if (type == ObjectType.Kuma)
         {
             anim = GetComponent<Animator>();
@@ -36,6 +42,9 @@ public class AttractingObject : MonoBehaviour
             if (type == ObjectType.Sakke && enemy.enemyState == EnemyState.Stun)
             {
                 enemy.DrinkSakke(transform.position);
+                enemy.sakke.SetActive(true);
+                if (meshRenderer != null) meshRenderer.enabled = false;
+                StartCoroutine(WaitStunTime(enemy));
             }
             else if (type == ObjectType.Kuma && enemy.enemyState == EnemyState.Stun)
             {
@@ -44,6 +53,13 @@ public class AttractingObject : MonoBehaviour
             }
         }
     }
+    private IEnumerator WaitStunTime(Enemy enemy)
+    {
+        yield return new WaitForSeconds(stunTime);
+        enemy.sakke.SetActive(false);
+        if (meshRenderer != null) meshRenderer.enabled = true;
+    }
+
 
     private Enemy FindClosestEnemy()
     {
@@ -88,9 +104,11 @@ public class AttractingObject : MonoBehaviour
             if (closestEnemy.enemyState != EnemyState.Stun)
             {
                 closestEnemy.ChangeStunState(StunType.Move, stunTime, transform.position);
+                alreadyAttracted = true;
             }
         }
     }
+
 
     private void AttractionRangeAllEnemy()
     {
@@ -214,7 +232,7 @@ public class AttractingObject : MonoBehaviour
 
     private void Update()
     {
-        if(type == ObjectType.Sakke)
+        if(type == ObjectType.Sakke && !alreadyAttracted)
         {
             AttractionEnemy();
         }

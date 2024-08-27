@@ -1,7 +1,11 @@
+using HighlightPlus;
 using System.Collections;
+using System.Linq;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public enum EnemyType { Melee, Range }
 public enum EnemyState { Patrol, Search, Attack, Stun }
@@ -35,6 +39,7 @@ public class Enemy : MonoBehaviour
     [SerializeField] protected string[] patrolDialogues; // 순찰 대사 배열
     [SerializeField] protected string[] searchDialogues; // 탐색 대사 배열
     [SerializeField] protected string[] attackDialogues; // 공격 대사 배열
+    protected string[] stunDialogues = new string[5]; // 스턴 대사 배열
 
     //상태 변수
     protected bool isWaiting; // 대기 중인지 여부
@@ -66,6 +71,7 @@ public class Enemy : MonoBehaviour
 
     [Header("Corpse Detection")]
     public float corpseDetectionRadius = 10f; // 시체 탐지 반경
+    public GameObject sakke;
     #endregion
 
     #region Start
@@ -479,6 +485,7 @@ public class Enemy : MonoBehaviour
         {
             EndStunState();
         }
+        StartCoroutine(SetDialogue("Stun"));
 
         switch (stunType)
         {
@@ -573,12 +580,12 @@ public class Enemy : MonoBehaviour
 
     public void DrinkSakke(Vector3 targetPostion)
     {
-        stunEffects[5].gameObject.SetActive(true);
+        //stunEffects[5].gameObject.SetActive(true);
         // 타겟 방향으로 회전
         Vector3 direction = (targetPostion - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-
+        
         agent.isStopped = true;
         anim.SetFloat("MoveSpeed", 0);
         anim.SetInteger("StunID", 5);
@@ -605,15 +612,22 @@ public class Enemy : MonoBehaviour
     {
         if (!isDead)
         {
+            for (int i = 0; i < stunEffects.Length; i++)
+            {
+                stunEffects[i].gameObject.SetActive(false);
+            }
+            HighlightEffect highlightEffect = GetComponent<HighlightEffect>();
+            highlightEffect.highlighted = false;
             dialogueCanvas.gameObject.SetActive(false);
             isDead = true;
             agent.isStopped = true;
             agent.enabled = false;
+            anim.SetInteger("StunID", 0);
             anim.SetTrigger("Death");
             gameObject.tag = "Corpse";
-            fieldOfView.isViewMeshVisible = false; // 시야 범위 메쉬 비활성화
+            fieldOfView.viewMeshGroup.SetActive(false);
             // 기타 모든 필요한 컴포넌트 비활성화
-            //fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
+            fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
             this.enabled = false; // 적 스크립트 자체 비활성화
         }
     }
@@ -659,6 +673,29 @@ public class Enemy : MonoBehaviour
                 else
                 {
                     dialogueText.text = "죽어랏! 켈켈"; // 기본 대사
+                }
+                break;
+            case "Stun":
+                if (stunDialogues.Length > 0)
+                {
+                    switch(stunType)
+                    {
+                        case StunType.Move:
+                            dialogueText.text = "술 정도는 괜찮지.";
+                            break;
+                        case StunType.Stun:
+                            dialogueText.text = "으.. 정신을 못차리겠어";
+                            break;
+                        case StunType.FixedView:
+                            dialogueText.text = "이 처자 정말 매력있는걸.";
+                            break;
+                        case StunType.BlockingView:
+                            dialogueText.text = "에취! 재채기가 계속 나와서 앞을 볼 수가 없어.";
+                            break;
+                        case StunType.RotateView:
+                            dialogueText.text = "이게 무슨 소리지?";
+                            break;
+                    }
                 }
                 break;
         }

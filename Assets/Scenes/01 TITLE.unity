@@ -12846,8 +12846,10 @@ MonoBehaviour:
   - {fileID: 9000000, guid: 194d93cad820b7e40b7848f8601e2314, type: 2}
   - {fileID: 9000000, guid: 9dd33bbebab7d8a43a885207c003f638, type: 2}
   - {fileID: 9000000, guid: d7a7bb6274cefc5458c1593bbc328360, type: 2}
+  equipmentLists: []
   anim: {fileID: 0}
   myAvatar: -1
+  myEquip: -1
 --- !u!4 &1710599047697570360
 Transform:
   m_ObjectHideFlags: 0

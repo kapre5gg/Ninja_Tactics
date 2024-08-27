@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
 public class NinjaTacticsManager : NetworkBehaviour
 {
     [Header("ÆÐ³Î")]
@@ -41,6 +40,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     [Header("Ending")]
     public TMP_Text lastTime;
     public TMP_Text endingText;
+
     //========================================//
 
     public override void OnStartServer()
@@ -91,6 +91,8 @@ public class NinjaTacticsManager : NetworkBehaviour
         DBManager.instance.myCon.agent.enabled = true;
         DBManager.instance.myCon.enabled = true;
         DBManager.instance.PlayerNinjaType = selectType;
+        AvatarHelper avataHelper = DBManager.instance.myCon.gameObject.GetComponent<AvatarHelper>();
+        avataHelper.EnableEquipment(selectType);
         readyPanel.SetActive(false);
         CmdUpdateSelects(selectType);
         CmdUpdateName(DBManager.instance.playerName);

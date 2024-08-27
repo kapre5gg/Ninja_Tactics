@@ -176,7 +176,7 @@ MonoBehaviour:
   anim: {fileID: 0}
   agent: {fileID: 0}
   soundEffect: {fileID: 0}
-  stunTime: 5
+  stunTime: 20
 --- !u!114 &7363476942166754031
 MonoBehaviour:
   m_ObjectHideFlags: 0

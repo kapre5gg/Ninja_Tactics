@@ -232,8 +232,14 @@ public class NinjaController : NetworkBehaviour
     private void ReadySkill(int skillIdx)
     {
         selectedSkill = skillSet[skillIdx];
-        if (!selectedSkill.IsOffCooldown() || SkillManager.instance.isUnavailable)
+        bool isUnavailable = !selectedSkill.IsOffCooldown() ||
+                            (ninjaType == 0 && selectedSkill == skillSet[1]) && SkillManager.instance.lostShuriken ||
+                            (ninjaType == 1 && selectedSkill == skillSet[1]) && SkillManager.instance.lostKimono ||
+                            (ninjaType == 2 && selectedSkill == skillSet[2]) && SkillManager.instance.lostSakke;
+        if (isUnavailable)
+        {
             return;
+        }
         skillIndicatorPrefab.transform.localScale = Vector3.one * skillSet[skillIdx].skillRange;
         skillIndicatorPrefab.SetActive(true);
         ViewSoundRange(true, skillSet[skillIdx].soundRange);
@@ -461,7 +467,8 @@ public class NinjaController : NetworkBehaviour
                             check = true;
                         break;
                     case 2:
-                        if (itemTag == "Sakke")
+                        Enemy enemy = collider.GetComponent<Enemy>();
+                        if (enemy == null && itemTag == "Sakke")
                             check = true;
                         break;
                 }
