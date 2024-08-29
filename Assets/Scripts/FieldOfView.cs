@@ -304,7 +304,7 @@ public class FieldOfView : MonoBehaviour
         return new Edge(minPoint, maxPoint); // 최종 엣지 반환
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (isViewMeshVisible)
         {

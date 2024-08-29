@@ -44,6 +44,7 @@ public class MainManager : MonoBehaviour
 
     [Header("IP 정보")]
     public const string IPADDR = "localhost";
+    public const string IPADDR_Local = "192.168.100.38";
     public string moveADDR = "localhost";
     [Header("Port 정보")]
     public const int DEFAULTPORT = 7777;
@@ -54,6 +55,9 @@ public class MainManager : MonoBehaviour
     public int connectionRoomIndex = -1; //지금은 못쓰는 중
     public string connectionRoomPort = ""; //방에 접속중 일 경우 접속중인 port
     public bool isRoomMaster = false; //본인이 방의 방장인지 여부확인
+    [Header("게임 캐릭터")]
+    public GameObject LobbyCharacter;
+    public GameObject NinjaCharacter;
     void Awake()
     {
         if (_instance == null) _instance = FindObjectOfType<MainManager>();

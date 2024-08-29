@@ -901,6 +901,7 @@ GameObject:
   - component: {fileID: 1996832771774926818}
   - component: {fileID: 5238725536374958345}
   - component: {fileID: 2675099157376792604}
+  - component: {fileID: -6544263359237363941}
   m_Layer: 0
   m_Name: Samurai
   m_TagString: Enemy
@@ -983,6 +984,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 115e9a916d6c6e749b49358ae6f2565a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
   enemyType: 0
   enemyState: 0
   stunType: 0
@@ -1011,6 +1015,23 @@ MonoBehaviour:
   bulletPrefab: {fileID: 0}
   corpseDetectionRadius: 10
   sakke: {fileID: 0}
+--- !u!114 &-6544263359237363941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7045510698799476751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  _assetId: 1432403229
+  serverOnly: 0
+  visibility: 0
+  hasSpawned: 0
 --- !u!1 &7356757994783678216
 GameObject:
   m_ObjectHideFlags: 0

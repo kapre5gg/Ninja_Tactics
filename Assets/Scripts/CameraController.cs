@@ -19,12 +19,13 @@ public class CameraController : MonoBehaviour
     private float lastClickTime;
     private float doubleClickTimeLimit = 0.7f;
     private Coroutine cor;
-    private Vector2 cameraCenter = new Vector2(Camera.main.pixelWidth / 2, Camera.main.pixelHeight / 2);
+    private Vector2 cameraCenter;
     public GameObject boundaryObject; // 카메라 이동 범위를 정의하는 Collider가 있는 GameObject
     private Collider boundaryCollider;
 
     void Start()
     {
+        cameraCenter = new Vector2(Camera.main.pixelWidth / 2, Camera.main.pixelHeight / 2);
         // boundaryObject에서 Collider 가져오기
         boundaryCollider = boundaryObject.GetComponent<Collider>();
 
@@ -44,7 +45,7 @@ public class CameraController : MonoBehaviour
         MouseRotate();
         //Zoom();
         OffsetZoom();
-        UpdateHeight();
+        //UpdateHeight();
     }
 
     private void Update()
@@ -52,7 +53,7 @@ public class CameraController : MonoBehaviour
         CallCharacters();
     }
 
-    private void CameraMove()
+    private void CameraMove() //Old version
     {
         Vector3 pos = transform.position;
 
@@ -73,6 +74,18 @@ public class CameraController : MonoBehaviour
         {
             pos.x -= panSpeed * Time.deltaTime;
         }
+    }
+    private void Zoom()
+    {
+        // 마우스 스크롤을 사용한 줌
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        Vector3 pos = transform.position;
+        pos.y -= scroll * scrollSpeed * 100f * Time.deltaTime;
+
+        // 카메라 이동 제한
+        pos = ClampPositionToCollider(pos);
+        height = pos.y;
+        transform.position = pos;
     }
 
     private void GetDirection()
@@ -112,18 +125,7 @@ public class CameraController : MonoBehaviour
             return;
         offset.y = -scroll * scrollSpeed * 10f * Time.deltaTime;
     }
-    private void Zoom()
-    {
-        // 마우스 스크롤을 사용한 줌
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        Vector3 pos = transform.position;
-        pos.y -= scroll * scrollSpeed * 100f * Time.deltaTime;
-
-        // 카메라 이동 제한
-        pos = ClampPositionToCollider(pos);
-        height = pos.y;
-        transform.position = pos;
-    }
+    
 
     Vector3 ClampPositionToCollider(Vector3 position)
     {

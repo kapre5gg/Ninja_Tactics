@@ -107,9 +107,15 @@ public class LoadingManager : MonoBehaviour
         ServerManager.instance.SetNetworkSetting(MainManager.Instance.moveADDR, MainManager.Instance.MoveScenePort.ToString());
         //3. 이동할 씬이름
         if (MainManager.Instance.nextSceneNumber == 2)
+        {
             NetworkManager.singleton.onlineScene = MainManager.Instance.scenes[0];
+            NetworkManager.singleton.playerPrefab = MainManager.Instance.LobbyCharacter;
+        }
         else if (MainManager.Instance.nextSceneNumber == 3)
+        {
             NetworkManager.singleton.onlineScene = MainManager.Instance.scenes[1];
+            NetworkManager.singleton.playerPrefab = MainManager.Instance.NinjaCharacter;
+        }
         else
             yield break;
 
@@ -129,7 +135,7 @@ public class LoadingManager : MonoBehaviour
         // 1. 다음 씬 전환 상태정보 operation 으로 확인
         //AsyncOperation operation = null;
         AsyncOperation operation = NetworkManager.loadingSceneAsync;
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(3f);
         operation.allowSceneActivation = false;
         // 2. 로딩창은 기본적으로 delay 시간만큼을 가지도록 설계함.
         // 참고 링크 : https://mirror-networking.gitbook.io/docs/manual/interest-management/scene

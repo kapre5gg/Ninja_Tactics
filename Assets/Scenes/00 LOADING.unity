@@ -839,6 +839,10 @@ MonoBehaviour:
   connectionRoomIndex: -1
   connectionRoomPort: 
   isRoomMaster: 0
+  LobbyCharacter: {fileID: 5522589709422917483, guid: 555f2fead98ed24458b51f691c35b837,
+    type: 3}
+  NinjaCharacter: {fileID: 5522589709422917483, guid: db37d07abf369614190cc475ce9fa918,
+    type: 3}
 --- !u!4 &1170647160
 Transform:
   m_ObjectHideFlags: 0

@@ -1,17 +1,15 @@
 using HighlightPlus;
 using System.Collections;
-using System.Linq;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UIElements;
+using Mirror;
 
 public enum EnemyType { Melee, Range }
 public enum EnemyState { Patrol, Search, Attack, Stun }
 public enum StunType { None, Move, Stun, FixedView, BlockingView, RotateView };
 
-public class Enemy : MonoBehaviour
+public class Enemy : NetworkBehaviour
 {
     #region 변수 선언
     public EnemyType enemyType; // 적 타입
@@ -212,7 +210,7 @@ public class Enemy : MonoBehaviour
     #region 순찰 상태
     protected virtual void PatrolState()
     {
-        if(waypoints != null && waypoints.Length > 0)
+        if (waypoints != null && waypoints.Length > 0)
         {
             agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
 
@@ -230,7 +228,7 @@ public class Enemy : MonoBehaviour
             anim.SetFloat("MoveSpeed", 0);
             RotateSearch();
         }
-        
+
         if (!hasPlayedDialogue) // 대사 출력 중이 아니면
         {
             StartCoroutine(SetDialogue("Patrol")); // 순찰 대사 출력
@@ -585,7 +583,7 @@ public class Enemy : MonoBehaviour
         Vector3 direction = (targetPostion - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
         transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
-        
+
         agent.isStopped = true;
         anim.SetFloat("MoveSpeed", 0);
         anim.SetInteger("StunID", 5);
@@ -612,26 +610,44 @@ public class Enemy : MonoBehaviour
     {
         if (!isDead)
         {
-            for (int i = 0; i < stunEffects.Length; i++)
-            {
-                stunEffects[i].gameObject.SetActive(false);
-            }
-            HighlightEffect highlightEffect = GetComponent<HighlightEffect>();
-            highlightEffect.highlighted = false;
-            dialogueCanvas.gameObject.SetActive(false);
-            isDead = true;
-            agent.isStopped = true;
-            agent.enabled = false;
-            anim.SetInteger("StunID", 0);
-            anim.SetTrigger("Death");
-            gameObject.tag = "Corpse";
-            fieldOfView.viewMeshGroup.SetActive(false);
-            // 기타 모든 필요한 컴포넌트 비활성화
-            fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
-            this.enabled = false; // 적 스크립트 자체 비활성화
+            //agent.isStopped = true;
+            //agent.enabled = false;
+            //anim.SetInteger("StunID", 0);
+            //anim.SetTrigger("Death");
+            CmdDie(); // 멀티로 넘기기
         }
     }
-
+    [Command(requiresAuthority = false)]
+    private void CmdDie()
+    {
+        LocalDie();
+        RpcDIe();
+    }
+    [ClientRpc]
+    private void RpcDIe()
+    {
+        LocalDie();
+    }
+    private void LocalDie()
+    {
+        for (int i = 0; i < stunEffects.Length; i++)
+        {
+            stunEffects[i].gameObject.SetActive(false);
+        }
+        HighlightEffect highlightEffect = GetComponent<HighlightEffect>();
+        highlightEffect.highlighted = false;
+        dialogueCanvas.gameObject.SetActive(false);
+        isDead = true;
+        agent.isStopped = true;
+        agent.enabled = false;
+        anim.SetInteger("StunID", 0);
+        anim.SetTrigger("Death");
+        gameObject.tag = "Corpse";
+        fieldOfView.viewMeshGroup.SetActive(false);
+        // 기타 모든 필요한 컴포넌트 비활성화
+        fieldOfView.enabled = false; // 시야 컴포넌트 비활성화
+        this.enabled = false; // 적 스크립트 자체 비활성화
+    }
     #endregion
 
     #region 대사 출력
@@ -678,7 +694,7 @@ public class Enemy : MonoBehaviour
             case "Stun":
                 if (stunDialogues.Length > 0)
                 {
-                    switch(stunType)
+                    switch (stunType)
                     {
                         case StunType.Move:
                             dialogueText.text = "술 정도는 괜찮지.";

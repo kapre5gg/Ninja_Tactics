@@ -1,5 +1,6 @@
 using kcp2k;
 using Mirror;
+using System.Collections;
 using System.Data;
 using TMPro;
 using UnityEngine;
@@ -20,6 +21,7 @@ public class SessionRoom : NetworkBehaviour
     private KcpTransport transport;
 
     private int serverIdx = 0;
+    private WaitForSeconds waifFiveSecconds = new WaitForSeconds(5);
 
     [Header("Btn")]
     public Button createBtn;
@@ -28,7 +30,6 @@ public class SessionRoom : NetworkBehaviour
     public GameObject CreatePanel;
     public TMP_InputField createInputText;
     public Button realCreateRoomBtn;
-
     void Awake()
     {
         transport = FindObjectOfType<KcpTransport>();
@@ -46,10 +47,12 @@ public class SessionRoom : NetworkBehaviour
             int index = i;
             portChangeBtns[i].onClick.AddListener(() => ChangePortBtn(index));
         }
+        StartCoroutine(nameof(UpdateSesstionData));
     }
-
-    private void FixedUpdate()
+    
+    private IEnumerator UpdateSesstionData()
     {
+        yield return waifFiveSecconds;
         data = session.LoadSessionInfo();
     }
 

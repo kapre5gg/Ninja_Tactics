@@ -25,10 +25,10 @@ public class NinjaTacticsManager : NetworkBehaviour
     [Header("server")]
     [SyncVar]
     public int serverPlayerNum = 0;
-    public List<int> playerSelects = new List<int>(5);
-    public List<string> playerNames = new List<string>(5);
-    public List<int> playerHPs = new List<int>(5) { -1, -1, -1, -1, -1 };
-    public List<NinjaController> playerNinjaCons = new List<NinjaController>(5);
+    public List<int> playerSelects = new List<int>();
+    public List<string> playerNames = new List<string>();
+    public List<int> playerHPs = new List<int>(5);
+    public List<NinjaController> playerNinjaCons = new List<NinjaController>();
     public bool ISGamePlay = false;
     public bool MissionClear = false;
 
@@ -98,7 +98,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         CmdUpdateName(DBManager.instance.playerName);
         CmdMakeProfile();
         LocalSetNinja();
-        DBManager.instance.myCon.ChangeAnimatorCon();
+        //DBManager.instance.myCon.CmdChangeAnimCon();
         CmdUpdateHP(localPlayerNum, DBManager.instance.myCon.curHP);
     }
 
@@ -121,23 +121,25 @@ public class NinjaTacticsManager : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdUpdateSelects(int _type)
     {
-        RpcUpdateSelects(_type);
+        playerSelects.Add(_type);
+        RpcUpdateSelects(playerSelects);
     }
     [ClientRpc]
-    private void RpcUpdateSelects(int _type)
+    private void RpcUpdateSelects(List<int> _typeList)
     {
-        playerSelects[serverPlayerNum - 1] = _type;
+        playerSelects = _typeList;
     }
 
     [Command(requiresAuthority = false)]
     private void CmdUpdateName(string _name)
     {
-        RpcUpdateName(_name);
+        playerNames.Add(_name);
+        RpcUpdateName(playerNames);
     }
     [ClientRpc]
-    private void RpcUpdateName(string _name)
+    private void RpcUpdateName(List<string> _nameList)
     {
-        playerNames[serverPlayerNum - 1] = _name;
+        playerNames = _nameList;
     }
 
 

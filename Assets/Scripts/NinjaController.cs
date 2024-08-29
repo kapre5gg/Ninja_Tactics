@@ -3,11 +3,11 @@ using Mirror;
 using StarterAssets;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+
 [Serializable]
 public class NinjaController : NetworkBehaviour
 {
@@ -19,7 +19,7 @@ public class NinjaController : NetworkBehaviour
     private int maxHP;
     public RuntimeAnimatorController ChangeAnimCon;
     private Animator anim;
-    [SyncVar(hook = nameof(DeleteBody))]
+    //[SyncVar(hook = nameof(DeleteBody))]
     public bool isDie = false;
     //private Coroutine moveCor;
     private NinjaTacticsManager tacticsManager;
@@ -42,8 +42,9 @@ public class NinjaController : NetworkBehaviour
     //마우스 클릭
     private float doubleClickTimeLimit = 0.3f;
     private float lastClickTime = 0f;
-
-    [Header("cashing")]
+    [Header("Components")]
+    public MiniMapComponent miniMapComponent;
+    [Header("Script cashing")]
     public HighlightEffect highlightEffect;
     public NavMeshAgent agent;
 
@@ -66,10 +67,23 @@ public class NinjaController : NetworkBehaviour
         agent.enabled = false;
         this.enabled = false;
     }
-    public void ChangeAnimatorCon()
+    [Command(requiresAuthority = false)]
+    public void CmdChangeAnimCon()
     {
+        LocalChangeAnimCon();
+        RpcChangeAnimCon();
+    }
+    [ClientRpc]
+    private void RpcChangeAnimCon()
+    {
+        LocalChangeAnimCon();
+    }
+    private void LocalChangeAnimCon()
+    {
+        if (anim == null)
+            anim = GetComponent<Animator>();
         RuntimeAnimatorController currCon = anim.runtimeAnimatorController;
-        anim.runtimeAnimatorController = ChangeAnimCon; //리모트 애니메이션도 바뀌나? 바뀜
+        anim.runtimeAnimatorController = ChangeAnimCon;
         ChangeAnimCon = currCon;
     }
 
@@ -102,6 +116,7 @@ public class NinjaController : NetworkBehaviour
         skillSet = SkillManager.instance.GetSkill(ninjaType);
         CmdChangNinjaSprite(ninjaType);
         tacticsManager.CmdAddNinjaCon(tacticsManager.localPlayerNum, this);
+        miniMapComponent.enabled = true;
     }
 
     [Command]
@@ -327,11 +342,11 @@ public class NinjaController : NetworkBehaviour
         anim.SetTrigger(_trigger);
     }
 
-    void DeleteBody(bool _Old, bool _New)
-    {
-        isDie = true;
-        Destroy(gameObject, 5f); //5초후 시체가 사라짐
-    }
+    //void DeleteBody(bool _Old, bool _New)
+    //{
+    //    isDie = true;
+    //    Destroy(gameObject, 5f); //5초후 시체가 사라짐
+    //}
 
     private void Teleport()
     {

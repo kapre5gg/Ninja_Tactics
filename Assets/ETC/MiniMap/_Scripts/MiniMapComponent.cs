@@ -44,7 +44,8 @@ public class MiniMapComponent : MonoBehaviour {
 		mme.rotateWithObject = rotateWithObject;
 		mme.clampInBorder = clampIconInBorder;
 		mme.clampDist = clampDistance;
-
+		if (miniMapController == null)
+			return;
 		mmo = miniMapController.RegisterMapObject(this.gameObject, mme);
 	}
 

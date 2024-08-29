@@ -302,25 +302,26 @@ public class SkillManager : MonoBehaviour
     public bool lostKimono = false;
     public bool lostSakke = false;
     public Color unableColor = new Color(100 / 255f, 100 / 255f, 100 / 255f, 1);
+    private Coroutine coolCor = null;
     public Skill[] GetSkill(int _type)
     {
         ninjaCon = DBManager.instance.myCon;
         switch (_type)
         {
             case 0:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f ); //1.3f
                 skillSet[1] = new Shurican(6f, 6f, 4f);
                 skillSet[2] = new ThrowSomething(6f, 5f, 6f, 0);
                 SKillIconSet(0);
                 break;
             case 1:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f);
                 skillSet[1] = new TalktoEnemy(1.2f, 0f, 4f);
-                skillSet[2] = new ThrowSomething(6f, 3f, 2.5f, 1);
+                skillSet[2] = new ThrowSomething(6f, 3f, 6f, 1);
                 SKillIconSet(1);
                 break;
             case 2:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 1.3f);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f); //1.4f
                 skillSet[1] = new SlashBlade(2f, 3f, 18f);
                 skillSet[2] = new ThrowSomething(6f, 0f, 0f, 2);
                 SKillIconSet(2);
@@ -346,22 +347,30 @@ public class SkillManager : MonoBehaviour
     public void SkillCool(int _skillNum)
     {
         skillIcons[_skillNum].fillAmount = 0;
-        StartCoroutine(FillCool(_skillNum));
+        if (coolCor != null)
+            StopCoroutine(coolCor);
+        coolCor = StartCoroutine(FillCool(_skillNum));
     }
     private IEnumerator FillCool(int _skillNum)
     {
         while (skillIcons[_skillNum].fillAmount <= 1)
         {
             skillIcons[_skillNum].fillAmount += Time.deltaTime / skillSet[_skillNum].skillCool;
+            //for (int i = 0; i < skillSet[_skillNum].skillCool; i++)
+            //{
+            //    yield return null;
+            //}
             yield return null;
         }
     }
     public void LostSomething(int _skillidx, bool _bool)
     {
+        float tempCool = skillIcons[_skillidx].fillAmount;
         if (!_bool)
             skillIcons[_skillidx].color = unableColor;
         else
             skillIcons[_skillidx].color = Color.white;
+        skillIcons[_skillidx].fillAmount = tempCool;
     }
 
     public void MakeSound(Vector3 _pos, float _soundRange)
@@ -397,7 +406,7 @@ public class SkillManager : MonoBehaviour
     public void HasShuriken()
     {
         lostShuriken = false;
-        skillIcons[1].fillAmount = 1;
+        //skillIcons[1].fillAmount = 1;
         LostSomething(1, true);
     }
     public void HasKimono()

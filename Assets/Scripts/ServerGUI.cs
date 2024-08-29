@@ -22,7 +22,7 @@ public class ServerGUI : MonoBehaviour
 
     private void OnEnable()
     {
-        ipAddrInput.text = MainManager.IPADDR;
+        ipAddrInput.text = MainManager.IPADDR_Local;
         portInput.text = transport.Port.ToString();
         ResetNetworkSetting();
     }
@@ -32,7 +32,7 @@ public class ServerGUI : MonoBehaviour
         NetworkManager.singleton.networkAddress = MainManager.IPADDR;
         transport.Port = MainManager.DEFAULTPORT;
 
-        ipAddrInput.text = MainManager.IPADDR;
+        ipAddrInput.text = MainManager.IPADDR_Local;
         portInput.text = MainManager.DEFAULTPORT.ToString();
 
         infoTxt.text = ServerManager.instance.SetNetworkSetting(ipAddrInput.text, portInput.text);
