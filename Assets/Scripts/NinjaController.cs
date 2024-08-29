@@ -199,6 +199,7 @@ public class NinjaController : NetworkBehaviour
     #region 이동관련
     public void Moveto(Vector3 _targetPos)
     {
+        print("dlehd");
         //StopCoroutine(moveCor);
         NotUseSkill();
         StopAllCoroutines();

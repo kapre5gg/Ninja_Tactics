@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
+
 public class CameraController : MonoBehaviour
 {
     public float panSpeed = 20f; // 카메라 이동 속도
@@ -18,7 +19,7 @@ public class CameraController : MonoBehaviour
     private float lastClickTime;
     private float doubleClickTimeLimit = 0.7f;
     private Coroutine cor;
-
+    private Vector2 cameraCenter = new Vector2(Camera.main.pixelWidth / 2, Camera.main.pixelHeight / 2);
     public GameObject boundaryObject; // 카메라 이동 범위를 정의하는 Collider가 있는 GameObject
     private Collider boundaryCollider;
 
@@ -41,7 +42,9 @@ public class CameraController : MonoBehaviour
         GetDirection();
         MouseOutScreen();
         MouseRotate();
-        Zoom();
+        //Zoom();
+        OffsetZoom();
+        UpdateHeight();
     }
 
     private void Update()
@@ -88,12 +91,32 @@ public class CameraController : MonoBehaviour
         transform.Translate(direction * panSpeed * Time.deltaTime, Space.Self);
         direction = Vector3.zero;
     }
-
-    private void Zoom()
+    public Vector3 offset;
+    private void UpdateHeight()
     {
-        Vector3 pos = transform.position;
+        Ray ray = Camera.main.ScreenPointToRay(cameraCenter);
+        Physics.Raycast(ray, out RaycastHit hit);
+        Vector3 tempPos = transform.position;
+        // Collider의 Bounds를 사용하여 카메라의 위치 제한
+        Bounds bounds = boundaryCollider.bounds;
+        tempPos.x = Mathf.Clamp(tempPos.x, bounds.min.x, bounds.max.x);
+        tempPos.y = hit.point.y + 10f + offset.y;
+        tempPos.z = Mathf.Clamp(tempPos.z, bounds.min.z, bounds.max.z);
+        transform.position = tempPos;
+    }
+    private void OffsetZoom()
+    {
         // 마우스 스크롤을 사용한 줌
         float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll == 0f)
+            return;
+        offset.y = -scroll * scrollSpeed * 10f * Time.deltaTime;
+    }
+    private void Zoom()
+    {
+        // 마우스 스크롤을 사용한 줌
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        Vector3 pos = transform.position;
         pos.y -= scroll * scrollSpeed * 100f * Time.deltaTime;
 
         // 카메라 이동 제한
@@ -106,11 +129,14 @@ public class CameraController : MonoBehaviour
     {
         if (boundaryCollider == null)
             return position;
+        
+        Ray ray = Camera.main.ScreenPointToRay(cameraCenter);
+        Physics.Raycast(ray, out RaycastHit hit);
 
         // Collider의 Bounds를 사용하여 카메라의 위치 제한
         Bounds bounds = boundaryCollider.bounds;
         position.x = Mathf.Clamp(position.x, bounds.min.x, bounds.max.x);
-        position.y = Mathf.Clamp(position.y, minY, maxY);
+        position.y = Mathf.Clamp(hit.point.y + position.y, hit.point.y + minY, hit.point.y + maxY);
         position.z = Mathf.Clamp(position.z, bounds.min.z, bounds.max.z);
 
         return position;
