@@ -1,6 +1,7 @@
 using Mirror;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -11,10 +12,10 @@ public class NinjaTacticsManager : NetworkBehaviour
     public GameObject multiPlayerParents;
     public GameObject localprofiles;
     public GameObject startPanel;
-    public GameObject EndingPanel;
+    public GameObject endingPanel;
     public Button startBtn;
     public TMP_Text startText;
-    public GameObject[] profiles = new GameObject[5]; //멀티 인원 체력 표시
+    public GameObject[] profiles = new GameObject[5]; //멀티 인원 프로필들
 
     [Header("local")]
     public int localPlayerNum = -1;
@@ -25,6 +26,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     [Header("server")]
     [SyncVar]
     public int serverPlayerNum = 0;
+    public int AlivePlayers = 0;
     public List<int> playerSelects = new List<int>();
     public List<string> playerNames = new List<string>();
     public List<int> playerHPs = new List<int>(5);
@@ -40,6 +42,9 @@ public class NinjaTacticsManager : NetworkBehaviour
     [Header("Ending")]
     public TMP_Text lastTime;
     public TMP_Text endingText;
+
+    [Header("Flow")]
+    public GameGuideLine gameGuideLine;
 
     //========================================//
 
@@ -75,7 +80,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         readyPanel.SetActive(_bool);
         localprofiles.SetActive(_bool);
         startPanel.SetActive(_bool);
-        EndingPanel.SetActive(false);
+        endingPanel.SetActive(false);
     }
 
 
@@ -100,6 +105,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         LocalSetNinja();
         //DBManager.instance.myCon.CmdChangeAnimCon();
         CmdUpdateHP(localPlayerNum, DBManager.instance.myCon.curHP);
+        CmdCountAlivePlayers();
     }
 
 
@@ -116,6 +122,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         startPanel.SetActive(false);
         ISGamePlay = true;
         SetTimer();
+        gameGuideLine.GuideFlow(0);
     }
 
     [Command(requiresAuthority = false)]
@@ -198,6 +205,19 @@ public class NinjaTacticsManager : NetworkBehaviour
         serverPlayerNum++;
     }
 
+    [Command(requiresAuthority = false)]
+    public void CmdCountAlivePlayers()
+    {
+        AlivePlayers = playerHPs.Count(n => n > 0); //현재 살아있는 멤버의 수 리턴
+        RpcCountAlivePlayers(AlivePlayers);
+    }
+    [ClientRpc]
+    private void RpcCountAlivePlayers(int _count)
+    {
+        AlivePlayers = _count;
+    }
+
+
     private void LocalSetNinja()
     {
         if (DBManager.instance.myCon == null)
@@ -239,6 +259,10 @@ public class NinjaTacticsManager : NetworkBehaviour
     }
     #endregion
 
+    #region MissionSys
+    //gameGuideLine 스크립트가 
+    #endregion
+
     #region EndingSys
     public bool _bol = true;
     [Command(requiresAuthority = false)]
@@ -262,7 +286,7 @@ public class NinjaTacticsManager : NetworkBehaviour
     [ClientRpc]
     public void RpcDisplayEnding()
     {
-        EndingPanel.SetActive(true);
+        endingPanel.SetActive(true);
         lastTime.text = FormatTime(PlayTime);
         SetEndingText();
     }

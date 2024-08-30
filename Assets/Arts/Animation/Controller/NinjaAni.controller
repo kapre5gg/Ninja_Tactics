@@ -635,7 +635,7 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 0}
-  - m_Name: Climbing
+  - m_Name: Ladder
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -741,7 +741,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: Climbing
+    m_ConditionEvent: Ladder
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 7632976766548688105}
@@ -1040,7 +1040,7 @@ AnimatorStateMachine:
     m_Position: {x: -30, y: 310, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 7632976766548688105}
-    m_Position: {x: 860, y: 300, z: 0}
+    m_Position: {x: 1050, y: 330, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4820843934242579687}
     m_Position: {x: 1080, y: 410, z: 0}

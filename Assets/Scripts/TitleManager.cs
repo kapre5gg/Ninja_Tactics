@@ -1,4 +1,5 @@
 using Mirror;
+using Org.BouncyCastle.Tls;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -36,6 +37,11 @@ public class TitleManager : MonoBehaviour
         MainManager.Instance.nextSceneNumber = 2;
         MainManager.Instance.clientStatus = MainManager.ClientStatus.CLIENT;
         SceneManager.LoadSceneAsync("00 LOADING");
+        // 그냥 로그인 버튼만 누르면 안되는 형상때문에 추가
+        ServerManager.instance.serverNum = 2;
+
+        MainManager.Instance.moveADDR = MainManager.IPADDR_Local;
+        MainManager.Instance.MoveScenePort = MainManager.LOBBYPORT;
     }
 
     public void SigninBtn()

@@ -334,6 +334,7 @@ public class NinjaController : NetworkBehaviour
             anim.SetTrigger("Die");
             isDie = true;
             tacticsManager.CmdCheackAllDeath();
+            tacticsManager.CmdCountAlivePlayers();
         }
     }
 

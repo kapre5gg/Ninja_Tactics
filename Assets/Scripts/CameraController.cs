@@ -21,7 +21,7 @@ public class CameraController : MonoBehaviour
     private Coroutine cor;
     private Vector2 cameraCenter;
     public GameObject boundaryObject; // 카메라 이동 범위를 정의하는 Collider가 있는 GameObject
-    private Collider boundaryCollider;
+    public Collider boundaryCollider;
 
     void Start()
     {
@@ -43,8 +43,8 @@ public class CameraController : MonoBehaviour
         GetDirection();
         MouseOutScreen();
         MouseRotate();
-        //Zoom();
-        OffsetZoom();
+        Zoom();
+        //OffsetZoom();
         //UpdateHeight();
     }
 
@@ -131,14 +131,11 @@ public class CameraController : MonoBehaviour
     {
         if (boundaryCollider == null)
             return position;
-        
-        Ray ray = Camera.main.ScreenPointToRay(cameraCenter);
-        Physics.Raycast(ray, out RaycastHit hit);
 
         // Collider의 Bounds를 사용하여 카메라의 위치 제한
         Bounds bounds = boundaryCollider.bounds;
         position.x = Mathf.Clamp(position.x, bounds.min.x, bounds.max.x);
-        position.y = Mathf.Clamp(hit.point.y + position.y, hit.point.y + minY, hit.point.y + maxY);
+        position.y = Mathf.Clamp(position.y, minY, maxY);
         position.z = Mathf.Clamp(position.z, bounds.min.z, bounds.max.z);
 
         return position;
