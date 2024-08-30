@@ -541,7 +541,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3869812175467a143ab9cd865752b4a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Avatar: {fileID: 9000000, guid: d7a7bb6274cefc5458c1593bbc328360, type: 2}
+  Avatar: {fileID: 9000000, guid: b0bb7da8f05a9164a8bd8308a2d88c88, type: 2}
   Description: {fileID: 11400000, guid: 7c6029c29c9bf0e40b275e4770e34b5a, type: 2}
 --- !u!95 &5448362829760054078
 Animator:
@@ -552,7 +552,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 923277153969380600}
   m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: d7a7bb6274cefc5458c1593bbc328360, type: 2}
+  m_Avatar: {fileID: 9000000, guid: b0bb7da8f05a9164a8bd8308a2d88c88, type: 2}
   m_Controller: {fileID: 0}
   m_CullingMode: 0
   m_UpdateMode: 0
