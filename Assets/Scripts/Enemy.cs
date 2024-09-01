@@ -64,6 +64,7 @@ public class Enemy : NetworkBehaviour
     //RangeType을 위한 변수들
     [SerializeField] protected Transform firePos; // 총알이 나갈 위치
     [SerializeField] protected GameObject bulletPrefab; // 총알 프리팹
+    [SerializeField] protected ParticleSystem muzzleFlash;
 
     private Vector3 lastKnownPosition; // 마지막으로 플레이어가 감지된 위치
 
@@ -210,7 +211,7 @@ public class Enemy : NetworkBehaviour
     #region 순찰 상태
     protected virtual void PatrolState()
     {
-        if (waypoints != null && waypoints.Length > 0)
+        if (waypoints != null && waypoints.Length > 0 && currentWaypointIndex < waypoints.Length)
         {
             agent.SetDestination(waypoints[currentWaypointIndex].position); // 웨이포인트로 이동 시작
 
@@ -226,7 +227,6 @@ public class Enemy : NetworkBehaviour
         {
             agent.isStopped = true;
             anim.SetFloat("MoveSpeed", 0);
-            RotateSearch();
         }
 
         if (!hasPlayedDialogue) // 대사 출력 중이 아니면
@@ -261,7 +261,7 @@ public class Enemy : NetworkBehaviour
         }
         //ChangeSearchState(); //탐색 상태 전환 함수
 
-        ChangeAttackState(); //공격 상태 전환 함수
+        //ChangeAttackState(); //공격 상태 전환 함수
     }
 
     protected virtual IEnumerator WaitAtWaypoint() // 웨이포인트 지점에서 일정 시간 대기
@@ -427,6 +427,8 @@ public class Enemy : NetworkBehaviour
         anim.SetTrigger("Attack"); // 공격 애니메이션 실행
         if (enemyType == EnemyType.Range)
         {
+            muzzleFlash.Play();
+            SoundManager.instance.PlaySE("적 총 발사");
             yield return new WaitForSeconds(0.2f);
             GameObject bullet = Instantiate(bulletPrefab, firePos.transform.position, transform.rotation);
             Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
@@ -446,10 +448,9 @@ public class Enemy : NetworkBehaviour
                 }
             }
         }
-
+        NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
+        targetNinja.OnDamage();
         yield return new WaitForSeconds(attackInterval);
-        //NinjaController targetNinja = atkTarget.GetComponent<NinjaController>();
-        //targetNinja.OnDamage();
         isAttacking = false; // 공격 중 상태 해제
         agent.isStopped = false; // 에이전트 이동 재개
     }
@@ -610,10 +611,7 @@ public class Enemy : NetworkBehaviour
     {
         if (!isDead)
         {
-            //agent.isStopped = true;
-            //agent.enabled = false;
-            //anim.SetInteger("StunID", 0);
-            //anim.SetTrigger("Death");
+            DBManager.instance.myCon.killCount += 1;
             CmdDie(); // 멀티로 넘기기
         }
     }
@@ -630,6 +628,7 @@ public class Enemy : NetworkBehaviour
     }
     private void LocalDie()
     {
+        SoundManager.instance.PlaySE("적 사망");
         for (int i = 0; i < stunEffects.Length; i++)
         {
             stunEffects[i].gameObject.SetActive(false);

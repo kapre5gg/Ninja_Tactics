@@ -212,14 +212,28 @@ public class CameraController : MonoBehaviour
         target = tacticsManager.playerNinjaCons[_num].transform.position;
         if (target == Vector3.zero)
             yield break;
-        Vector3 newPos = new Vector3(target.x, transform.position.y, target.z);
-        float _t = 0f;
-        while (_t < 0.2f)
+        Vector3 newPos = new Vector3(target.x, target.y + 5f, target.z - 2.1f);
+        //float _t = 0f;
+        //while (_t < 0.2f)
+        //{
+        //    _t += Time.deltaTime;
+        //    transform.position = Vector3.Lerp(transform.position, newPos, _t);
+        //    yield return null;
+        //}
+        float elapsedTime = 0f;
+        float moveDuration = 0.2f;
+
+        while (elapsedTime < moveDuration)
         {
-            _t += Time.deltaTime;
-            transform.position = Vector3.Lerp(transform.position, newPos, _t);
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / moveDuration);  // t 값을 0에서 1 사이로 제한
+            transform.position = Vector3.Lerp(transform.position, newPos, t);
             yield return null;
         }
+
+        // 이동이 완료되었으므로 최종 위치로 설정
+        transform.position = newPos;
     }
+
 }
 

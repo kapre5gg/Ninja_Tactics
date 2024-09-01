@@ -11,6 +11,8 @@ TagManager:
   - Kimono
   - Sakke
   - Waypoints
+  - Cave
+  - Ladder
   layers:
   - Default
   - TransparentFX

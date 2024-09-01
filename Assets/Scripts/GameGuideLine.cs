@@ -26,11 +26,36 @@ public class GameGuideLine : MonoBehaviour
     public CameraController camParent;
     public GameObject guideEffect;
 
+    public Enemy targetEnemy;
+    public int targetEnemyIndex = -1;
+    public Enemy[] targetEnemys;
+
     private void Update()
     {
-        if (onTriggerPos)
-            if (triggerPos.AllTogether)
-                NextGuideFlow();
+        if(tacticsManager.ISGamePlay)
+        {
+            if (onTriggerPos)
+            {
+                targetEnemy = null;
+                if (triggerPos.AllTogether)
+                    NextGuideFlow();
+            }
+            if (!onTriggerPos)
+            {
+                if (targetEnemy == null)
+                {
+                    targetEnemy = targetEnemys[targetEnemyIndex];
+                }
+                if (targetEnemy != null && targetEnemy.isDead)
+                {
+                    NextGuideFlow();
+                }
+            }
+            if (currentMission == 6)
+            {
+                GameWin();
+            }
+        }
     }
 
     public void NextGuideFlow()
@@ -93,7 +118,16 @@ public class GameGuideLine : MonoBehaviour
             case 2:
             case 4:
                 onTriggerPos = false; //Á×ÀÌ´Â ÀÓ¹«
+                targetEnemyIndex++;
                 break;
         }
+    }
+
+    private void GameWin()
+    {
+        tacticsManager.MissionClear = true;
+        tacticsManager.ISGamePlay = false;
+        tacticsManager.RpcDisplayEnding();
+        guidePanel.SetActive(false);
     }
 }

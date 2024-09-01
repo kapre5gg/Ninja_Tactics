@@ -228,7 +228,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 724aa88597126904b869277ccfb48eaa, type: 2}
+  m_Motion: {fileID: 7400000, guid: 62e7076f73664ae4cb8b4bae37874849, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -280,7 +280,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 075c2bc084fe22d4a93feef9af41715c, type: 2}
+  m_Motion: {fileID: 7400000, guid: 5818e30194f86c94ea2482e838503fa2, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -409,7 +409,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 0c8f3e4ed3dcee3449c386961d7d4f31, type: 2}
+  m_Motion: {fileID: 7400000, guid: e8e6bc1395472e64fa4f96403914c76d, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -483,7 +483,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: HandGunEnemy Animator
+  m_Name: SamuraiEnemy Animator
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: MoveSpeed
@@ -653,7 +653,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 6f6ff1b7300616746b4a8a095ad3ed1b, type: 2}
+  m_Motion: {fileID: 7400000, guid: 6cabf98b2a1844849b45a4ada3df98aa, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

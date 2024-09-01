@@ -1384,6 +1384,18 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: ca3d53204bc07d641b61042bce54f641, type: 3}
   - soundName: "\uD53C\uACA9 2"
     clip: {fileID: 8300000, guid: 286685216d6801a45988d097f036237b, type: 3}
+  - soundName: "\uC801 \uCD1D \uBC1C\uC0AC"
+    clip: {fileID: 8300000, guid: d5cafaa7eb743a543a811b33aa2e7c99, type: 3}
+  - soundName: "\uC801 \uC0AC\uB9DD"
+    clip: {fileID: 8300000, guid: 6429ebba5688ed340a1b616be1ffa545, type: 3}
+  - soundName: "A \uC2A4\uD0AC"
+    clip: {fileID: 8300000, guid: 9c307670a64e1a54fb5618dda9c238a1, type: 3}
+  - soundName: "\uB358\uC9C0\uAE30"
+    clip: {fileID: 8300000, guid: f05dbf30b4a0b3e408c510238481bfe0, type: 3}
+  - soundName: "\uB9E4\uD639"
+    clip: {fileID: 8300000, guid: ef4a9fdf6ead3714d989a346b7f82e16, type: 3}
+  - soundName: "\uD53D\uC5C5"
+    clip: {fileID: 8300000, guid: 3ab28d4be118a8046b079ab247c29461, type: 3}
   bgmPlayer: {fileID: 1175064031}
   sfxPlayer:
   - {fileID: 1175064030}
@@ -1393,6 +1405,8 @@ MonoBehaviour:
   playSoundName:
   - "\uD53C\uACA9 1"
   - "\uD53C\uACA9 2"
+  - "\uC801 \uCD1D \uBC1C\uC0AC"
+  - "\uC801 \uC0AC\uB9DD"
 --- !u!4 &1175064033
 Transform:
   m_ObjectHideFlags: 0

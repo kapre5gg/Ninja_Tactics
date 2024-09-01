@@ -40,8 +40,12 @@ public class NinjaTacticsManager : NetworkBehaviour
     private WaitForSeconds waitOneSecond = new WaitForSeconds(1);
 
     [Header("Ending")]
-    public TMP_Text lastTime;
-    public TMP_Text endingText;
+    [SerializeField] private TMP_Text lastTime;
+    [SerializeField] private TMP_Text endingTitleText;
+    [SerializeField] private TMP_Text endingText;
+    [SerializeField] private TMP_Text killCountText;
+    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private Image endingImage;
 
     [Header("Flow")]
     public GameGuideLine gameGuideLine;
@@ -289,13 +293,64 @@ public class NinjaTacticsManager : NetworkBehaviour
         endingPanel.SetActive(true);
         lastTime.text = FormatTime(PlayTime);
         SetEndingText();
+        SetEndingScore(PlayTime, DBManager.instance.myCon.killCount);
     }
     private void SetEndingText()
     {
         if (MissionClear)
+        {
+            endingTitleText.text = "승         리";
             endingText.text = "목표를 없애고 평화를 얻었다.";
+            endingImage.sprite = Resources.Load<Sprite>($"Win_Image");
+        }
         else
+        {
+            endingTitleText.text = "패         배";
             endingText.text = "모두 죽으셨군요. 쯧.";
+            endingImage.sprite = Resources.Load<Sprite>($"Lose_Image");
+        }   
+    }
+    private void SetEndingScore(int _playTime, int _killCount)
+    {
+        killCountText.text = _killCount.ToString();
+        switch (_playTime)
+        {
+            case int n when (n < 20):
+                scoreText.text = "속전속결의";
+                break;
+
+            case int n when (n >= 20) && (n < 60):
+                scoreText.text = "성급한";
+                break;
+
+            case int n when (n >= 60) && (n < 120):
+                scoreText.text = "신중한";
+                break;
+
+            case int n when (n >= 120):
+                scoreText.text = "느려터진";
+                break;
+
+            default:
+                break;
+        }
+
+        if (_killCount >= 10)
+        {
+            scoreText.text += " 피의 학살자";
+        }
+        else if (_killCount >= 5)
+        {
+            scoreText.text += " 숙련된 전사";
+        }
+        else if (_killCount > 0)
+        {
+            scoreText.text += " 수도승";
+        }
+        else
+        {
+            scoreText.text += " 평화주의자";
+        }
     }
 
     #endregion

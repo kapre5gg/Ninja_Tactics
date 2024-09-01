@@ -922,7 +922,6 @@ Transform:
   m_LocalScale: {x: 1.4332142, y: 1.4332135, z: 1.4332142}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 730279648897319736}
   - {fileID: 322966402053233451}
   - {fileID: 5685963261358136969}
   - {fileID: 1030429989808686166}
@@ -993,12 +992,12 @@ MonoBehaviour:
   waypoints: []
   waitTime: 2
   agentSpeed: 3.5
-  anim: {fileID: 0}
-  fieldOfView: {fileID: 0}
-  exclamationMark: {fileID: 0}
-  infoCanvas: {fileID: 0}
-  dialogueCanvas: {fileID: 0}
-  dialogueText: {fileID: 0}
+  anim: {fileID: 8135652795428903412}
+  fieldOfView: {fileID: 4903007753629287649}
+  exclamationMark: {fileID: 7356757994783678216}
+  infoCanvas: {fileID: 914648482958714456}
+  dialogueCanvas: {fileID: 2914230095423448178}
+  dialogueText: {fileID: 2209352335529897678}
   patrolDialogues: []
   searchDialogues: []
   attackDialogues: []
@@ -1013,6 +1012,7 @@ MonoBehaviour:
   searchRange: 10
   firePos: {fileID: 0}
   bulletPrefab: {fileID: 0}
+  muzzleFlash: {fileID: 0}
   corpseDetectionRadius: 10
   sakke: {fileID: 0}
 --- !u!114 &-6544263359237363941
@@ -1196,13 +1196,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8326476830508995606}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.0000536117, y: 0.033444, z: -0.0037370618, w: 0.99943364}
-  m_LocalPosition: {x: -0.1636594, y: 1.617559, z: 0.4549298}
-  m_LocalScale: {x: 0.2107152, y: 0.14184907, z: 0.2318704}
+  m_LocalRotation: {x: 0.011947594, y: -0.6807225, z: 0.72148323, w: 0.12623869}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalScale: {x: 0.20400527, y: 0.13733207, z: 0.22448686}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2163223631449634563}
-  m_Father: {fileID: 1042707405262096385}
+  m_Father: {fileID: 219362776120214160}
   m_LocalEulerAnglesHint: {x: 0.02, y: 183.308, z: -0.428}
 --- !u!33 &3178980854151991631
 MeshFilter:
@@ -1293,22 +1293,22 @@ MonoBehaviour:
   viewAngle: 0
   targetMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 8
   obstacleMask1:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 512
   obstacleMask2:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   visibleTargets: []
   meshResolution: 0
-  viewMeshFilter: {fileID: 0}
-  viewMeshFilter2: {fileID: 0}
-  viewMeshGroup: {fileID: 0}
-  activeMaterial: {fileID: 0}
-  inactiveMaterial: {fileID: 0}
-  obtacleMaterial: {fileID: 0}
-  enemy: {fileID: 0}
+  viewMeshFilter: {fileID: 5274130094520121047}
+  viewMeshFilter2: {fileID: 9097078581962826629}
+  viewMeshGroup: {fileID: 537928511411778614}
+  activeMaterial: {fileID: 2100000, guid: 5374d5a7aea4dfc478200bc7a5d8960e, type: 2}
+  inactiveMaterial: {fileID: 2100000, guid: cfd9889c08c0b0b47b82d30f55e5c43c, type: 2}
+  obtacleMaterial: {fileID: 2100000, guid: f534ba213f859ab409422b22a5ed5818, type: 2}
+  enemy: {fileID: 2675099157376792604}
   isViewMeshVisible: 0
 --- !u!1 &8666145064725115860
 GameObject:
@@ -1566,6 +1566,10 @@ PrefabInstance:
     m_RemovedGameObjects:
     - {fileID: -609789569868470505, guid: 49f319bb499841047bcde7e31ecf6d05, type: 3}
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 70513941485157968, guid: 49f319bb499841047bcde7e31ecf6d05,
+        type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 730279648897319736}
     - targetCorrespondingSourceObject: {fileID: -5669086478796250927, guid: 49f319bb499841047bcde7e31ecf6d05,
         type: 3}
       insertIndex: -1
@@ -1576,6 +1580,12 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8135652795428903412}
   m_SourcePrefab: {fileID: 100100000, guid: 49f319bb499841047bcde7e31ecf6d05, type: 3}
+--- !u!4 &219362776120214160 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 70513941485157968, guid: 49f319bb499841047bcde7e31ecf6d05,
+    type: 3}
+  m_PrefabInstance: {fileID: 284238351060024512}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &322966402053233451 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 49f319bb499841047bcde7e31ecf6d05,

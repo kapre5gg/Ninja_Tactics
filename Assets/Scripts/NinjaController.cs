@@ -36,7 +36,7 @@ public class NinjaController : NetworkBehaviour
     public Vector3 nonTargetPos;
     public Transform target;
     public bool veiwSoundIndicator;
-    private Skill[] skillSet = new Skill[3];
+    public Skill[] skillSet = new Skill[3];
     private Skill selectedSkill;
     //public Vector3 targetPos;
     //마우스 클릭
@@ -51,6 +51,8 @@ public class NinjaController : NetworkBehaviour
     private Transform carriedCorpse = null;  // 현재 들고 있는 시체
     private bool isCarryingCorpse = false;
     [SerializeField] private Transform enemyBox;
+    public int killCount;
+
 
     public override void OnStartLocalPlayer()
     {
@@ -214,7 +216,6 @@ public class NinjaController : NetworkBehaviour
     #region 이동관련
     public void Moveto(Vector3 _targetPos)
     {
-        print("dlehd");
         //StopCoroutine(moveCor);
         NotUseSkill();
         StopAllCoroutines();
@@ -245,7 +246,7 @@ public class NinjaController : NetworkBehaviour
         else if (Input.GetKeyDown(KeyCode.D))
             ReadySkill(2);
     }
-    private void ReadySkill(int skillIdx)
+    public void ReadySkill(int skillIdx)
     {
         selectedSkill = skillSet[skillIdx];
         bool isUnavailable = !selectedSkill.IsOffCooldown() ||
@@ -342,6 +343,10 @@ public class NinjaController : NetworkBehaviour
     {
         anim.SetTrigger(_trigger);
     }
+    public void ChangeAnimBool(string _bool, bool _flag)
+    {
+        anim.SetBool (_bool, _flag);
+    }
 
     //void DeleteBody(bool _Old, bool _New)
     //{
@@ -356,7 +361,7 @@ public class NinjaController : NetworkBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                TeleportLocation teleportLocation = hit.transform.GetComponent<TeleportLocation>();
+                GHTeleportLocation teleportLocation = hit.transform.GetComponent<GHTeleportLocation>();
                 if (teleportLocation != null)
                 {
                     agent.SetDestination(hit.point);
@@ -370,7 +375,7 @@ public class NinjaController : NetworkBehaviour
         }
     }
 
-    private IEnumerator CheckAndTeleport(TeleportLocation teleportLocation)
+    private IEnumerator CheckAndTeleport(GHTeleportLocation teleportLocation)
     {
         while (agent.pathPending)
         {
@@ -414,6 +419,7 @@ public class NinjaController : NetworkBehaviour
             {
                 if (hit.transform.gameObject.CompareTag("Corpse"))
                 {
+                    SoundManager.instance.PlaySE("픽업");
                     if (carriedCorpse == null)  // 시체를 들고 있지 않다면
                     {
                         agent.SetDestination(hit.transform.position);
@@ -493,6 +499,7 @@ public class NinjaController : NetworkBehaviour
                     break;
                 if (SkillManager.instance.itemActions.TryGetValue(itemTag, out Action itemAction))
                 {
+                    SoundManager.instance.PlaySE("픽업");
                     Debug.Log($"{itemTag} 획득");
                     itemAction.Invoke();
                     collider.gameObject.layer = 0;

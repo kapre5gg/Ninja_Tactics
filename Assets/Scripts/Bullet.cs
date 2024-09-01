@@ -12,8 +12,9 @@ public class Bullet : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            //NinjaController targetNinja = other.GetComponent<NinjaController>();
+            //targetNinja.OnDamage();
             Destroy(gameObject);
-            Debug.Log("총알이 플레이어에게 데미지 입힘");
         }
         else
         {

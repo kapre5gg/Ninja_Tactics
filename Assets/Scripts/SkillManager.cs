@@ -8,14 +8,16 @@ using UnityEngine.UI;
 public abstract class Skill
 {
     [Header("skill info")]
+    public string skillName;
     public float skillRange;
     public float soundRange;
     public float skillCool;
     protected float lastUsedTime;
     protected NinjaController caster;
     protected Transform casterTr;
-    public Skill(float skillRange, float soundRange, float skillCool)
+    public Skill(float skillRange, float soundRange, float skillCool, string skillName)
     {
+        this.skillName = skillName;
         this.skillRange = skillRange;
         this.soundRange = soundRange;
         this.skillCool = skillCool;
@@ -103,13 +105,14 @@ public abstract class Skill
 
 public class MeleeAttack : Skill
 {
-    public MeleeAttack(float skillRange, float soundRange, float skillCool)
-        : base(skillRange, soundRange, skillCool) { }
+    public MeleeAttack(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
 
     public override void UseSkill()
     {
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Attack");
+        SoundManager.instance.PlaySE("A 스킬");
         SkillManager.instance.MakeSound(casterTr.position, soundRange);
         caster.target.GetComponent<Enemy>().Die();
         caster.skillIndicatorPrefab.SetActive(false);
@@ -128,8 +131,8 @@ public class MeleeAttack : Skill
 
 public class Shurican : Skill
 {
-    public Shurican(float skillRange, float soundRange, float skillCool)
-        : base(skillRange, soundRange, skillCool) { }
+    public Shurican(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
 
     public override void UseSkill()
     {
@@ -137,6 +140,7 @@ public class Shurican : Skill
             return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("ThrowShuriken");
+        SoundManager.instance.PlaySE("던지기");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
@@ -163,8 +167,8 @@ public class ThrowSomething : Skill
     private int type = -1;
     // _type == 0 == stone / 1 == sand / 2 == sakke / 3 == bomb / 4 == null
 
-    public ThrowSomething(float skillRange, float soundRange, float skillCool, int _type)
-        : base(skillRange, soundRange, skillCool) { type = _type; }
+    public ThrowSomething(float skillRange, float soundRange, float skillCool, int _type, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { type = _type; }
 
     public override void UseSkill()
     {
@@ -172,6 +176,7 @@ public class ThrowSomething : Skill
             return;
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Throw");
+        SoundManager.instance.PlaySE("던지기");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(2);
         caster.NotUseSkill();
@@ -218,13 +223,14 @@ public class ThrowSomething : Skill
 
 public class SlashBlade : Skill
 {
-    public SlashBlade(float skillRange, float soundRange, float skillCool)
-        : base(skillRange, soundRange, skillCool) { }
+    public SlashBlade(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
 
     public override void UseSkill()
     {
         caster.agent.SetDestination(casterTr.position);
         caster.ChangeAnim("Slash");
+        SoundManager.instance.PlaySE("A 스킬");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
         caster.NotUseSkill();
@@ -254,13 +260,14 @@ public class SlashBlade : Skill
 
 public class TalktoEnemy : Skill
 {
-    public TalktoEnemy(float skillRange, float soundRange, float skillCool)
-        : base(skillRange, soundRange, skillCool) { }
+    public TalktoEnemy(float skillRange, float soundRange, float skillCool, string skillName)
+        : base(skillRange, soundRange, skillCool, skillName) { }
 
     public override void UseSkill()
     {
         caster.agent.SetDestination(casterTr.position);
-        caster.ChangeAnim("Idle");
+        caster.ChangeAnim("Kiss");
+        SoundManager.instance.PlaySE("매혹");
         //talk
         caster.target.GetComponent<Enemy>().ChangeStunState(StunType.FixedView, 5f);
         SkillManager.instance.SkillCool(1);
@@ -309,21 +316,21 @@ public class SkillManager : MonoBehaviour
         switch (_type)
         {
             case 0:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f ); //1.3f
-                skillSet[1] = new Shurican(6f, 6f, 4f);
-                skillSet[2] = new ThrowSomething(6f, 5f, 6f, 0);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "닌자도"); //1.3f
+                skillSet[1] = new Shurican(6f, 6f, 4f, "수리검");
+                skillSet[2] = new ThrowSomething(6f, 5f, 6f, 0, "돌던지기");
                 SKillIconSet(0);
                 break;
             case 1:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f);
-                skillSet[1] = new TalktoEnemy(1.2f, 0f, 4f);
-                skillSet[2] = new ThrowSomething(6f, 3f, 6f, 1);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "쿠나이");
+                skillSet[1] = new TalktoEnemy(1.2f, 0f, 4f, "변장");
+                skillSet[2] = new ThrowSomething(6f, 3f, 6f, 1, "재채기분말");
                 SKillIconSet(1);
                 break;
             case 2:
-                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f); //1.4f
-                skillSet[1] = new SlashBlade(2f, 3f, 18f);
-                skillSet[2] = new ThrowSomething(6f, 0f, 0f, 2);
+                skillSet[0] = new MeleeAttack(1.2f, 3f, 2f, "일본도"); //1.4f
+                skillSet[1] = new SlashBlade(2f, 3f, 18f, "바람가르기");
+                skillSet[2] = new ThrowSomething(6f, 0f, 0f, 2, "술병");
                 SKillIconSet(2);
                 break;
             default:
