@@ -32,6 +32,11 @@ public class GameGuideLine : NetworkBehaviour
     public int targetEnemyIndex = 0;
     public Enemy[] targetEnemys;
 
+    private void Start()
+    {
+        EnableEnemy(0);
+    }
+
     private void Update()
     {
         if (tacticsManager.ISGamePlay)
