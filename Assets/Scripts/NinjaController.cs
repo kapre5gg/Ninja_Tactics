@@ -38,6 +38,7 @@ public class NinjaController : NetworkBehaviour
     public bool veiwSoundIndicator;
     public Skill[] skillSet = new Skill[3];
     private Skill selectedSkill;
+    private int terrainLayer;
     //public Vector3 targetPos;
     //마우스 클릭
     private float doubleClickTimeLimit = 0.3f;
@@ -68,6 +69,7 @@ public class NinjaController : NetworkBehaviour
         //StartNinja();
         agent.enabled = false;
         this.enabled = false;
+        terrainLayer = LayerMask.GetMask("Terrain");
     }
     [Command(requiresAuthority = false)]
     public void CmdChangeAnimCon()
@@ -161,7 +163,7 @@ public class NinjaController : NetworkBehaviour
             lastClickTime = Time.time;
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit))
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayer))
                 Moveto(hit.point);
         }
     }
@@ -299,8 +301,6 @@ public class NinjaController : NetworkBehaviour
             yield return null;
             yield return null;
             yield return null;
-            int terrainLayer = LayerMask.GetMask("Terrain");
-
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayer))
             {
