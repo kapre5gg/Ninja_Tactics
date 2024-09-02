@@ -81,7 +81,7 @@ public class GameGuideLine : MonoBehaviour
         onTriggerPos = true;
         //SwitchOnTriggerPos(_idx);
         camParent.boundaryCollider = cameraBoundarys[_idx];
-        //EnableEnemy(_idx);
+        EnableEnemy(_idx);
         if (cor != null)
             StopCoroutine(cor);
         cor = StartCoroutine(nameof(CameraMove));
