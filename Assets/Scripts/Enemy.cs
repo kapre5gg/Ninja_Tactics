@@ -618,8 +618,8 @@ public class Enemy : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdDie()
     {
-        LocalDie();
         RpcDIe();
+        LocalDie();
     }
     [ClientRpc]
     private void RpcDIe()
@@ -637,8 +637,11 @@ public class Enemy : NetworkBehaviour
         highlightEffect.highlighted = false;
         dialogueCanvas.gameObject.SetActive(false);
         isDead = true;
-        agent.isStopped = true;
-        agent.enabled = false;
+        if (agent.enabled)
+        {
+            agent.isStopped = true;
+            agent.enabled = false;
+        }
         anim.SetInteger("StunID", 0);
         anim.SetTrigger("Death");
         gameObject.tag = "Corpse";

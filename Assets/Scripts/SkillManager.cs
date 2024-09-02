@@ -117,7 +117,7 @@ public class MeleeAttack : Skill
         caster.target.GetComponent<Enemy>().Die();
         caster.skillIndicatorPrefab.SetActive(false);
         SkillManager.instance.SkillCool(0);
-        caster.NotUseSkill();
+        caster.AlreadyUseSkill();
     }
 
     public override void ApproachUseSkill()
@@ -143,7 +143,7 @@ public class Shurican : Skill
         SoundManager.instance.PlaySE("던지기");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
-        caster.NotUseSkill();
+        caster.AlreadyUseSkill();
         SkillManager.instance.lostShuriken = true;
         SkillManager.instance.LostSomething(1, false);
     }
@@ -179,7 +179,7 @@ public class ThrowSomething : Skill
         SoundManager.instance.PlaySE("던지기");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(2);
-        caster.NotUseSkill();
+        caster.AlreadyUseSkill();
         if (type == 2)
         {
             SkillManager.instance.lostSakke = true;
@@ -233,7 +233,7 @@ public class SlashBlade : Skill
         SoundManager.instance.PlaySE("A 스킬");
         caster.GetComponent<MonoBehaviour>().StartCoroutine(WaitforAct());
         SkillManager.instance.SkillCool(1);
-        caster.NotUseSkill();
+        caster.AlreadyUseSkill();
     }
     private IEnumerator WaitforAct()
     {
@@ -271,7 +271,7 @@ public class TalktoEnemy : Skill
         //talk
         caster.target.GetComponent<Enemy>().ChangeStunState(StunType.FixedView, 5f);
         SkillManager.instance.SkillCool(1);
-        caster.NotUseSkill();
+        caster.AlreadyUseSkill();
     }
     public override void ApproachUseSkill()
     {

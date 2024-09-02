@@ -78,6 +78,7 @@ public class NinjaTacticsManager : NetworkBehaviour
         CmdGameStart();
         DBManager.Session session = new DBManager.Session();
         session.StartNinjaTactics(MainManager.Instance.connectionRoomPort);
+        gameGuideLine.NextGuideFlow();
     }
     private void OnOffPanel(bool _bool)
     {
@@ -126,7 +127,6 @@ public class NinjaTacticsManager : NetworkBehaviour
         startPanel.SetActive(false);
         ISGamePlay = true;
         SetTimer();
-        gameGuideLine.GuideFlow(0);
     }
 
     [Command(requiresAuthority = false)]
@@ -268,18 +268,18 @@ public class NinjaTacticsManager : NetworkBehaviour
     #endregion
 
     #region EndingSys
-    public bool _bol = true;
+    public bool allDie = true;
     [Command(requiresAuthority = false)]
     public void CmdCheackAllDeath()
     {
         print("´©°¡ Á×À½");
-        _bol = true;
+        allDie = true;
         foreach (int p in playerHPs)
         {
             if (p > 0)
-                _bol = false;
+                allDie = false;
         }
-        if (_bol)
+        if (allDie)
         {
             print("¸ðµÎ Á×À½");
             MissionClear = false;

@@ -139,7 +139,7 @@ public class NinjaController : NetworkBehaviour
     {
         if (Input.GetMouseButtonDown(1))
         {
-            NotUseSkill();
+            AlreadyUseSkill();
             StopAllCoroutines();
             if (isSitting)
             {
@@ -174,7 +174,7 @@ public class NinjaController : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             //StopCoroutine(moveCor);
-            NotUseSkill();
+            AlreadyUseSkill();
             StopAllCoroutines();
             agent.SetDestination(transform.position);
             agent.speed = ninjaSitSpeed;
@@ -219,7 +219,7 @@ public class NinjaController : NetworkBehaviour
     public void Moveto(Vector3 _targetPos)
     {
         //StopCoroutine(moveCor);
-        NotUseSkill();
+        AlreadyUseSkill();
         StopAllCoroutines();
         agent.SetDestination(_targetPos);
         agent.speed = ninjaSpeed;
@@ -310,7 +310,7 @@ public class NinjaController : NetworkBehaviour
         }
     }
 
-    public void NotUseSkill()
+    public void AlreadyUseSkill()
     {
         selectedSkill = null;
         skillIndicatorPrefab.SetActive(false);

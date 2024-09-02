@@ -2,11 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Mirror;
 
-public class GameGuideLine : MonoBehaviour
+public class GameGuideLine : NetworkBehaviour
 {
     [Header("Flow")]
-    public int currentMission = 0;
+    public int currentMission = -1;
     [SerializeField] private bool onTriggerPos; //지금 미션이 모이는 미션이면 true
     public List<Transform> camGuideLines = new List<Transform>();
     public List<Transform> effectGuideLines = new List<Transform>();
@@ -18,6 +19,7 @@ public class GameGuideLine : MonoBehaviour
     private WaitForSeconds waitThree = new WaitForSeconds(3);
     private Vector3 camOrigin;
     private Coroutine cor;
+    private bool cmdActiveOnlyOne = false;
     [Header("Components")]
     public NinjaTacticsManager tacticsManager;
     public TriggerPos triggerPos;
@@ -27,7 +29,7 @@ public class GameGuideLine : MonoBehaviour
     public GameObject guideEffect;
 
     public Enemy targetEnemy;
-    public int targetEnemyIndex = -1;
+    public int targetEnemyIndex = 0;
     public Enemy[] targetEnemys;
 
     private void Update()
@@ -66,10 +68,26 @@ public class GameGuideLine : MonoBehaviour
         triggerPos.AllTogether = false;
         triggerPos.inSideCount = 0;
         currentMission++;
-        GuideFlow(currentMission);
+        CmdGuideFlow(currentMission);
+        //RpcGuideFlow(currentMission);
+        //LocalGuideFlow(currentMission);
     }
-
-    public void GuideFlow(int _idx)
+    [Command(requiresAuthority = false)]
+    private void CmdGuideFlow(int _idx)
+    {
+        if (cmdActiveOnlyOne)
+            return;
+        cmdActiveOnlyOne = true;
+        LocalGuideFlow(currentMission);
+        RpcGuideFlow(_idx);
+        StartCoroutine(nameof(ResetCmdActive));
+    }
+    [ClientRpc]
+    private void RpcGuideFlow(int _idx)
+    {
+        LocalGuideFlow(_idx);
+    }
+    private void LocalGuideFlow(int _idx)
     {
         currentMission = _idx;
         guideEffect.SetActive(false);
@@ -79,7 +97,7 @@ public class GameGuideLine : MonoBehaviour
         UpdateGuideText(_idx);
         guideEffect.transform.position = effectGuideLines[_idx].position;
         onTriggerPos = true;
-        //SwitchOnTriggerPos(_idx);
+        SwitchOnTriggerPos(_idx);
         camParent.boundaryCollider = cameraBoundarys[_idx];
         EnableEnemy(_idx);
         if (cor != null)
@@ -93,6 +111,12 @@ public class GameGuideLine : MonoBehaviour
             EnemySet[i].SetActive(false);
         }
         EnemySet[_idx].SetActive(true);
+    }
+
+    private IEnumerator ResetCmdActive()
+    {
+        yield return waitThree;
+        cmdActiveOnlyOne = false;
     }
 
     private IEnumerator CameraMove()
