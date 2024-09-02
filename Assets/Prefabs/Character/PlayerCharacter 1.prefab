@@ -27199,6 +27199,7 @@ MonoBehaviour:
   highlightEffect: {fileID: 0}
   agent: {fileID: 0}
   enemyBox: {fileID: 0}
+  killCount: 0
 --- !u!143 &1781178364322216945
 CharacterController:
   m_ObjectHideFlags: 0
@@ -44060,7 +44061,7 @@ PrefabInstance:
     - target: {fileID: 5995899842649338297, guid: aa416956f55c1df41b9344652f055fe7,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 5995899842649338297, guid: aa416956f55c1df41b9344652f055fe7,
         type: 3}

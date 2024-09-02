@@ -19917,7 +19917,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4488485357701566079
 RectTransform:
   m_ObjectHideFlags: 0
@@ -27199,6 +27199,7 @@ MonoBehaviour:
   highlightEffect: {fileID: 0}
   agent: {fileID: 0}
   enemyBox: {fileID: 0}
+  killCount: 0
 --- !u!143 &1781178364322216945
 CharacterController:
   m_ObjectHideFlags: 0

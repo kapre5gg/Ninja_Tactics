@@ -305,7 +305,7 @@ public class NinjaController : NetworkBehaviour
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, terrainLayer))
             {
                 Vector3 worldPos = hit.point;
-                soundIndicator.transform.position = new Vector3(worldPos.x, worldPos.y + 0.05f, worldPos.z);
+                soundIndicator.transform.position = new Vector3(worldPos.x, worldPos.y + 0.15f, worldPos.z);
             }
         }
     }

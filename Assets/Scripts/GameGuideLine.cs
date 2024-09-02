@@ -12,12 +12,12 @@ public class GameGuideLine : MonoBehaviour
     public List<Transform> effectGuideLines = new List<Transform>();
     public List<string> guideTexts = new List<string>();
     public List<BoxCollider> cameraBoundarys = new List<BoxCollider>();
+    public List<GameObject> EnemySet = new List<GameObject>();
     private Vector3 currGuideLine;
     private RaycastHit hit;
     private WaitForSeconds waitThree = new WaitForSeconds(3);
     private Vector3 camOrigin;
     private Coroutine cor;
-    private bool triggerInUpdate = true;
     [Header("Components")]
     public NinjaTacticsManager tacticsManager;
     public TriggerPos triggerPos;
@@ -32,11 +32,12 @@ public class GameGuideLine : MonoBehaviour
 
     private void Update()
     {
-        if(tacticsManager.ISGamePlay)
+        if (tacticsManager.ISGamePlay)
         {
+            guidePanel.SetActive(true);
             if (onTriggerPos)
             {
-                targetEnemy = null;
+                //targetEnemy = null;
                 if (triggerPos.AllTogether)
                     NextGuideFlow();
             }
@@ -56,6 +57,8 @@ public class GameGuideLine : MonoBehaviour
                 GameWin();
             }
         }
+        else
+            guidePanel.SetActive(false);
     }
 
     public void NextGuideFlow()
@@ -72,14 +75,26 @@ public class GameGuideLine : MonoBehaviour
         guideEffect.SetActive(false);
         currGuideLine = camGuideLines[_idx].position;
         camOrigin = camParent.transform.position;
+        camParent.transform.rotation = Quaternion.identity;
         UpdateGuideText(_idx);
         guideEffect.transform.position = effectGuideLines[_idx].position;
-        SwitchOnTriggerPos(_idx);
+        onTriggerPos = true;
+        //SwitchOnTriggerPos(_idx);
         camParent.boundaryCollider = cameraBoundarys[_idx];
+        //EnableEnemy(_idx);
         if (cor != null)
             StopCoroutine(cor);
         cor = StartCoroutine(nameof(CameraMove));
     }
+    private void EnableEnemy(int _idx)
+    {
+        for (int i = 0; i < EnemySet.Count; i++)
+        {
+            EnemySet[i].SetActive(false);
+        }
+        EnemySet[_idx].SetActive(true);
+    }
+
     private IEnumerator CameraMove()
     {
         float _t = 0f;
